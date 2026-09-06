@@ -7,13 +7,20 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
+<!-- <svelte:head> must be an unconditional, direct child of the component
+     (Svelte doesn't allow the tag itself inside an {#if}/{:else} block) —
+     so it stays at the top level here, with the conditional *inside* it
+     instead. PageContent.svelte sets its own <title> when data.homePage
+     exists, so this one only applies to the fallback case. -->
+<svelte:head>
+	{#if !data.homePage}
+		<title>{settings.siteName}</title>
+	{/if}
+</svelte:head>
+
 {#if data.homePage}
 	<PageContent page={data.homePage} />
 {:else}
-	<svelte:head>
-		<title>{settings.siteName}</title>
-	</svelte:head>
-
 	<section class="mx-auto max-w-3xl px-4 py-16">
 		<h1 class="text-4xl font-bold tracking-tight">{settings.siteName}</h1>
 		{#if settings.siteDescription}
