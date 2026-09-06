@@ -53,13 +53,18 @@ En plus des articles, la collection **Pages** (`content/pages/*.md`) permet de c
 
 - `static/admin/config.yml` : collection `pages`, champs `title` + `blocks` (types partagés avec "posts" via l'ancre YAML `&blockTypes`/`*blockTypes`) + `isHomePage` + `seo` (voir plus bas).
 - `src/lib/pages.ts` : lit `content/pages/*.md` (même principe que `src/lib/posts.ts`), expose `getAllPages()`, `getPageBySlug()`, `getHomePage()`.
-- `src/routes/[slug]/+page.svelte` (+ `+page.server.ts`) : route générique qui affiche n'importe quelle page par son slug, avec un `EntryGenerator` pour que `adapter-static` prérende chaque page créée dans le CMS.
+- `src/lib/components/PageContent.svelte` : rendu d'une page (titre + blocs + `<title>`), partagé entre `/<slug>` et `/` (voir "Page d'accueil éditable" ci-dessous) — pour ne pas dupliquer ce rendu entre les deux routes.
+- `src/routes/[slug]/+page.svelte` (+ `+page.server.ts`) : route générique qui affiche n'importe quelle page par son slug via `PageContent`, avec un `EntryGenerator` pour que `adapter-static` prérende chaque page créée dans le CMS.
 - `static/admin/preview.js` : `CMS.registerPreviewTemplate('pages', ...)` réutilise le même rendu de blocs et le même header/footer que l'aperçu des articles.
 - `content/pages/a-propos.md` : exemple de page pour voir le résultat tout de suite (`/a-propos`).
 
 **Slugs réservés** : `blog` et `admin` sont déjà pris par des routes existantes (`/blog`, et `/admin` qui est servi comme fichier statique). Une page qui utiliserait un de ces slugs est filtrée par `getAllPages()` (avec un avertissement dans la console au build) plutôt que de produire un conflit silencieux.
 
-**Page d'accueil éditable** : coche « Définir comme page d'accueil » (`isHomePage`) sur une page pour que son contenu (titre + blocs) remplace le texte d'accueil par défaut sur `/` — géré par `src/routes/+page.server.ts` (`getHomePage()`) et `src/routes/+page.svelte`. Sans page cochée, l'accueil garde son contenu actuel (texte de présentation + lien vers le blog). Une seule page doit avoir la case cochée à la fois (la première trouvée gagne si plusieurs le sont par erreur).
+**Page d'accueil éditable** : coche « Définir comme page d'accueil » (`isHomePage`) sur une page pour que son contenu (titre + blocs, via le même composant `PageContent` que `/<slug>`) remplace le texte d'accueil par défaut sur `/` — géré par `src/routes/+page.server.ts` (`getHomePage()`) et `src/routes/+page.svelte`. Sans page cochée, l'accueil affiche un message minimal invitant à en créer une (plus la description du site et un lien vers le blog). Une seule page doit avoir la case cochée à la fois (la première trouvée gagne si plusieurs le sont par erreur).
+
+Note : `src/routes/+page.svelte` reste nécessaire — SvelteKit a besoin d'un composant à la racine des routes pour que `/` réponde ; impossible de le supprimer purement et simplement. Il ne fait par contre plus que déléguer à `PageContent` (zéro logique de rendu dupliquée) avec juste ce repli minimal en plus.
+
+Autre effet de bord à connaître : une page cochée « page d'accueil » reste **aussi** accessible à sa propre URL (`/<son-slug>`), en plus de `/` — même contenu à deux adresses. Pas grave en soi, mais prévoir une balise `<link rel="canonical">` vers `/` pour cette page lors du câblage SEO (voir section dédiée) si on veut éviter le contenu dupliqué aux yeux des moteurs.
 
 ### Design system (Tailwind + shadcn-svelte)
 
