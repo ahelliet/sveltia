@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Blocks from '$lib/components/Blocks.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -16,4 +17,6 @@
 	{/if}
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html data.post.html}
+
+	<Blocks blocks={data.post.blocks} />
 </article>

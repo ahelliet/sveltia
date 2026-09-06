@@ -35,6 +35,18 @@ backend:
 1. **Token d'accès personnel GitHub** (par défaut, zéro config) : sur l'écran de connexion de l'admin, "Sign In with Token" — génère un fine-grained PAT avec accès "Contents: Read and write" sur ce repo. Suffisant seul ou à deux, mais chacun doit créer/gérer son propre token.
 2. **OAuth via un worker Cloudflare** (mieux à plusieurs) : déploie le [worker officiel `sveltia-cms-auth`](https://github.com/sveltia/sveltia-cms-auth) (tier gratuit Cloudflare largement suffisant), crée une OAuth App GitHub pointant vers `<URL_DU_WORKER>/callback`, puis décommente `base_url` dans `config.yml` avec l'URL du worker.
 
+## Page builder (blocs de contenu)
+
+En plus du champ `body` (markdown libre), la collection `posts` a un champ `blocks` (`widget: list` avec `types`) qui permet d'empiler des blocs réordonnables dans l'admin : **Texte**, **Image**, **Image + Texte**, **Citation**, **Galerie**. Chaque type est défini dans `static/admin/config.yml`, et rendu côté site par `src/lib/components/Blocks.svelte` à partir des données typées dans `src/lib/posts.ts` (type `Block`).
+
+Pour ajouter un nouveau type de bloc :
+
+1. Ajoute une entrée dans `types:` du champ `blocks` (`static/admin/config.yml`), avec un `name` unique et ses `fields`.
+2. Ajoute le type TypeScript correspondant et son cas dans `parseBlocks()` (`src/lib/posts.ts`).
+3. Ajoute la branche `{:else if block.type === '...'}` dans `src/lib/components/Blocks.svelte`.
+
+L'article `content/posts/hello-world.md` contient un exemple de chaque type pour voir le rendu tout de suite (`pnpm dev` puis `/blog/hello-world`).
+
 ## Déploiement
 
 Fonctionne sur n'importe quel hébergeur statique. Exemple Netlify :

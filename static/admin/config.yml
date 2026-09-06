@@ -2,7 +2,6 @@
 
 backend:
   name: github
-  # Remplace par ton propre dépôt "owner/repo" avant de déployer.
   repo: ahelliet/sveltia
   branch: main
   # Pour l'auth OAuth via un petit worker Cloudflare (recommandé à plusieurs
@@ -25,3 +24,43 @@ collections:
       - { label: "Résumé", name: "excerpt", widget: "text", required: false }
       - { label: "Image principale", name: "heroImage", widget: "image", required: false }
       - { label: "Contenu", name: "body", widget: "markdown" }
+      - label: "Blocs de contenu (page builder)"
+        name: "blocks"
+        widget: "list"
+        required: false
+        types:
+          - label: "Texte"
+            name: "text"
+            widget: "object"
+            fields:
+              - { label: "Contenu", name: "body", widget: "markdown" }
+          - label: "Image"
+            name: "image"
+            widget: "object"
+            fields:
+              - { label: "Image", name: "image", widget: "image" }
+              - { label: "Légende", name: "caption", widget: "string", required: false }
+              - { label: "Texte alternatif", name: "alt", widget: "string", required: false }
+          - label: "Image + Texte"
+            name: "image_text"
+            widget: "object"
+            fields:
+              - { label: "Image", name: "image", widget: "image" }
+              - { label: "Texte", name: "body", widget: "markdown" }
+              - { label: "Image à droite", name: "imageOnRight", widget: "boolean", default: false }
+          - label: "Citation"
+            name: "quote"
+            widget: "object"
+            fields:
+              - { label: "Citation", name: "quote", widget: "text" }
+              - { label: "Auteur", name: "author", widget: "string", required: false }
+          - label: "Galerie"
+            name: "gallery"
+            widget: "object"
+            fields:
+              - label: "Images"
+                name: "images"
+                widget: "list"
+                fields:
+                  - { label: "Image", name: "image", widget: "image" }
+                  - { label: "Texte alternatif", name: "alt", widget: "string", required: false }
