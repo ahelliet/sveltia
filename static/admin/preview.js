@@ -480,14 +480,29 @@
 			var data = toPlain(entry.get('data')) || {};
 			var blocks = Array.isArray(data.blocks) ? data.blocks : [];
 
-			var children = [
-				h('h1', { key: 'title', className: 'text-3xl font-bold tracking-tight' }, data.title || ''),
-				h(
-					'div',
-					{ key: 'blocks', className: 'mt-8 flex flex-col gap-10' },
-					renderBlocks(blocks, getAsset)
-				)
-			];
+			// Même règle que PageContent.svelte : pas de <h1> répétant le titre
+			// sur la page d'accueil (redondant), et pas de marge au-dessus des
+			// blocs dans ce cas.
+			var children = data.isHomePage
+				? [
+						h(
+							'div',
+							{ key: 'blocks', className: 'flex flex-col gap-10' },
+							renderBlocks(blocks, getAsset)
+						)
+					]
+				: [
+						h(
+							'h1',
+							{ key: 'title', className: 'text-3xl font-bold tracking-tight' },
+							data.title || ''
+						),
+						h(
+							'div',
+							{ key: 'blocks', className: 'mt-8 flex flex-col gap-10' },
+							renderBlocks(blocks, getAsset)
+						)
+					];
 
 			return h(
 				'div',
