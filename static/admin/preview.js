@@ -543,4 +543,25 @@
 	CMS.registerPreviewTemplate('posts', PostPreview);
 	CMS.registerPreviewTemplate('pages', PagePreview);
 	CMS.registerPreviewTemplate('navigation', NavigationPreview);
+
+	// Titre de l'admin ("Sveltia CMS" par défaut, affiché à côté du logo sur
+	// l'écran de connexion et dans l'onglet du navigateur) : on le remplace
+	// par le nom du site dès qu'il est renseigné dans Paramètres globaux.
+	// index.html a mis window.CMS_MANUAL_INIT = true pour empêcher la CMS de
+	// s'initialiser toute seule le temps qu'on récupère site-meta.json (voir
+	// src/routes/admin/site-meta.json/+server.ts) ; on l'initialise nous-
+	// mêmes juste après, avec ou sans nom de site selon que la requête a
+	// abouti. CMS.init({ config }) fusionne ce config partiel avec celui de
+	// config.yml (chargé automatiquement), donc rien d'autre ne change.
+	fetch('site-meta.json')
+		.then(function (res) {
+			return res.ok ? res.json() : null;
+		})
+		.catch(function () {
+			return null;
+		})
+		.then(function (meta) {
+			var siteName = meta && meta.siteName;
+			CMS.init(siteName ? { config: { app_title: siteName } } : {});
+		});
 })();

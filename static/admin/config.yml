@@ -19,8 +19,17 @@ locale: "fr"
 # Logo personnalisé affiché dans l'en-tête de l'admin (remplace l'icône par
 # défaut de Sveltia CMS), visible dès le chargement du CMS. Pour l'instant on
 # réutilise l'icône du site (static/images/logo.svg) — remplace ce fichier
-# par ton propre logo quand tu en as un.
-logo_url: /images/logo.svg
+# par ton propre logo quand tu en as un. (`logo:` plutôt que l'ancien
+# `logo_url`, déprécié au profit de cette syntaxe.)
+logo:
+  src: /images/logo.svg
+  show_in_header: true
+
+# Le titre affiché à côté de ce logo ("Sveltia CMS" par défaut) est défini
+# dynamiquement au chargement, à partir du nom du site dans Paramètres
+# globaux — voir static/admin/preview.js et le README, section "Titre de
+# l'admin". Pas besoin d'app_title ici : le laisser non défini permet à
+# preview.js de le fournir (ou pas) selon les données.
 
 # Évite les accents/caractères spéciaux dans les slugs générés depuis des
 # titres en français (ex : "Bilan à mi-année" -> "bilan-a-mi-annee" plutôt

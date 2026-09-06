@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <meta name="robots" content="noindex" />
     <title>Sveltia CMS</title>
+    <!-- Empêche l'initialisation automatique de la CMS : on la déclenche
+         nous-mêmes depuis preview.js, une fois le nom du site récupéré
+         (site-meta.json), pour personnaliser le titre affiché à côté du
+         logo (app_title) — voir le README, section "Titre de l'admin". -->
+    <script>
+      window.CMS_MANUAL_INIT = true;
+    </script>
   </head>
   <body>
     <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
