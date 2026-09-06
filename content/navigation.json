@@ -1,0 +1,8 @@
+{
+	"navLinks": [
+		{ "label": "Accueil", "url": "/" },
+		{ "label": "Blog", "url": "/blog" }
+	],
+	"footerText": "© 2026 — Site propulsé par SvelteKit + Sveltia CMS.",
+	"footerLinks": []
+}

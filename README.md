@@ -69,6 +69,15 @@ Cette commande tourne automatiquement avant `pnpm dev` et avant `pnpm build` (ho
 
 Si tu ajoutes un nouveau type de bloc ou changes le style dans `Blocks.svelte`, répercute le changement dans `preview.js` (le rendu ne partage pas de code avec l'app SvelteKit) — la partie couleurs/thème, elle, se met à jour toute seule au prochain `pnpm dev`/`pnpm build` puisqu'elle vient directement de `src/app.css`.
 
+## Navigation et paramètres globaux
+
+Deux entrées supplémentaires dans le menu de l'admin, pour le contenu qui n'est pas un article :
+
+- **Navigation** (`content/navigation.json`) — liens du menu, texte et liens du pied de page.
+- **Paramètres globaux** (`content/settings.json`) — nom/description du site, image de partage par défaut, email de contact.
+
+Ce sont des "file collections" Sveltia CMS (`files:` au lieu de `folder:`) : un seul document éditable par entrée, plutôt qu'une liste d'articles. Les champs actuels sont un point de départ volontairement minimal — à étoffer selon les besoins réels (ajoute simplement des `fields` dans `static/admin/config.yml`, comme pour n'importe quelle collection). Pour l'instant ces fichiers ne sont pas encore lus par le site (pas de composant Navigation/Footer côté SvelteKit) : c'est la prochaine étape logique, sur le même principe que `src/lib/posts.ts` (un petit loader qui lit `content/navigation.json`/`content/settings.json`).
+
 ## Déploiement
 
 Fonctionne sur n'importe quel hébergeur statique. Exemple Netlify :

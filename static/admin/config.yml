@@ -63,3 +63,49 @@ collections:
                 fields:
                   - { label: "Image", name: "image", widget: "image" }
                   - { label: "Texte alternatif", name: "alt", widget: "string", required: false }
+
+  - name: "navigation"
+    label: "Navigation"
+    files:
+      - name: "navigation"
+        label: "Navigation"
+        file: "content/navigation.json"
+        fields:
+          - label: "Liens du menu"
+            name: "navLinks"
+            widget: "list"
+            fields:
+              - { label: "Libellé", name: "label", widget: "string" }
+              - { label: "URL", name: "url", widget: "string" }
+          - label: "Texte du pied de page"
+            name: "footerText"
+            widget: "string"
+            required: false
+          - label: "Liens du pied de page"
+            name: "footerLinks"
+            widget: "list"
+            required: false
+            fields:
+              - { label: "Libellé", name: "label", widget: "string" }
+              - { label: "URL", name: "url", widget: "string" }
+
+  - name: "settings"
+    label: "Paramètres globaux"
+    files:
+      - name: "settings"
+        label: "Paramètres globaux"
+        file: "content/settings.json"
+        fields:
+          - { label: "Nom du site", name: "siteName", widget: "string" }
+          - label: "Description du site"
+            name: "siteDescription"
+            widget: "text"
+            required: false
+          - label: "Image par défaut (partage social)"
+            name: "defaultImage"
+            widget: "image"
+            required: false
+          - label: "Email de contact"
+            name: "contactEmail"
+            widget: "string"
+            required: false
