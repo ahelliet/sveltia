@@ -1,0 +1,14 @@
+{
+  "navLinks": [
+    {
+      "label": "Accueil",
+      "url": "/"
+    },
+    {
+      "label": "Blog",
+      "url": "/blog"
+    }
+  ],
+  "footerText": "",
+  "footerLinks": []
+}
