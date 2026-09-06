@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { navigation, settings } from '$lib/site';
+	import { navigation, resolveLinkHref, settings } from '$lib/site';
 </script>
 
 <header class="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
@@ -11,7 +11,7 @@
 			<nav class="flex flex-wrap items-center gap-6 text-sm">
 				{#each navigation.navLinks as link}
 					<a
-						href={link.url}
+						href={resolveLinkHref(link)}
 						class="text-muted-foreground transition-colors hover:text-foreground"
 					>
 						{link.label}

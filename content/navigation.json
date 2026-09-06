@@ -2,10 +2,12 @@
   "navLinks": [
     {
       "label": "Accueil 2",
+      "linkType": "url",
       "url": "/"
     },
     {
       "label": "Blog",
+      "linkType": "url",
       "url": "/blog"
     }
   ],
@@ -13,6 +15,7 @@
   "footerLinks": [
     {
       "label": "Accueil 3",
+      "linkType": "url",
       "url": "/"
     }
   ]

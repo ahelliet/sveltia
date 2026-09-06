@@ -66,6 +66,34 @@ collections:
                 fields:
                   - { label: "Image", name: "image", widget: "image" }
                   - { label: "Texte alternatif", name: "alt", widget: "string", required: false }
+      - label: "Référencement (SEO)"
+        name: "seo"
+        widget: "object"
+        required: false
+        collapsed: true
+        # &seoFields : mêmes champs réutilisés par la collection "pages"
+        # (ancre YAML), pour ne les définir qu'une seule fois.
+        fields: &seoFields
+          - label: "Titre meta (SEO)"
+            name: "metaTitle"
+            widget: "string"
+            required: false
+            hint: "Si vide, utilise le titre ci-dessus."
+          - label: "Description meta (SEO)"
+            name: "metaDescription"
+            widget: "text"
+            required: false
+            hint: "Si vide, utilise la description par défaut des paramètres globaux."
+          - label: "Image de partage (Open Graph)"
+            name: "ogImage"
+            widget: "image"
+            required: false
+            hint: "Si vide, utilise l'image principale, sinon l'image par défaut des paramètres globaux."
+          - label: "Ne pas indexer (noindex)"
+            name: "noIndex"
+            widget: "boolean"
+            default: false
+            required: false
 
   - name: "pages"
     label: "Pages"
@@ -92,27 +120,7 @@ collections:
         widget: "object"
         required: false
         collapsed: true
-        fields:
-          - label: "Titre meta (SEO)"
-            name: "metaTitle"
-            widget: "string"
-            required: false
-            hint: "Si vide, utilise le titre de la page ci-dessus."
-          - label: "Description meta (SEO)"
-            name: "metaDescription"
-            widget: "text"
-            required: false
-            hint: "Si vide, utilise la description par défaut des paramètres globaux."
-          - label: "Image de partage (Open Graph)"
-            name: "ogImage"
-            widget: "image"
-            required: false
-            hint: "Si vide, utilise l'image par défaut des paramètres globaux."
-          - label: "Ne pas indexer (noindex)"
-            name: "noIndex"
-            widget: "boolean"
-            default: false
-            required: false
+        fields: *seoFields
 
   - name: "navigation"
     label: "Navigation"
@@ -124,9 +132,44 @@ collections:
           - label: "Liens du menu"
             name: "navLinks"
             widget: "list"
-            fields:
+            # &navLinkFields : mêmes champs réutilisés par "Liens du pied de
+            # page" ci-dessous (ancre YAML).
+            fields: &navLinkFields
               - { label: "Libellé", name: "label", widget: "string" }
-              - { label: "URL", name: "url", widget: "string" }
+              - label: "Type de lien"
+                name: "linkType"
+                widget: "select"
+                options:
+                  - { label: "Page", value: "page" }
+                  - { label: "Article de blog", value: "post" }
+                  - { label: "URL personnalisée", value: "url" }
+                default: "url"
+                hint: "Détermine quel champ ci-dessous est utilisé."
+              - label: "Page liée"
+                name: "page"
+                widget: "relation"
+                collection: "pages"
+                search_fields: ["title"]
+                value_field: "{{slug}}"
+                display_fields: ["title"]
+                required: false
+                hint: "Utilisé si le type de lien ci-dessus est « Page »."
+              - label: "Article lié"
+                name: "post"
+                widget: "relation"
+                collection: "posts"
+                search_fields: ["title"]
+                value_field: "{{slug}}"
+                display_fields: ["title"]
+                required: false
+                hint: "Utilisé si le type de lien ci-dessus est « Article de blog »."
+              - label: "URL personnalisée"
+                name: "url"
+                widget: "string"
+                required: false
+                hint: >-
+                  Utilisé si le type de lien ci-dessus est « URL
+                  personnalisée » (ex : /blog, /, https://...).
           - label: "Texte du pied de page"
             name: "footerText"
             widget: "string"
@@ -135,9 +178,7 @@ collections:
             name: "footerLinks"
             widget: "list"
             required: false
-            fields:
-              - { label: "Libellé", name: "label", widget: "string" }
-              - { label: "URL", name: "url", widget: "string" }
+            fields: *navLinkFields
 
   - name: "settings"
     label: "Paramètres globaux"
@@ -154,6 +195,11 @@ collections:
             widget: "text"
             required: false
             hint: "Sert aussi de description meta (SEO) par défaut."
+          - label: "Favicon"
+            name: "favicon"
+            widget: "image"
+            required: false
+            hint: "Icône affichée dans l'onglet du navigateur. SVG, PNG ou ICO. Si vide, garde l'icône par défaut du projet."
           - label: "Image par défaut (partage social)"
             name: "defaultImage"
             widget: "image"
@@ -179,7 +225,7 @@ collections:
                 required: false
                 hint: >-
                   Ex : https://mon-site.fr — nécessaire pour générer des URLs
-                  absolues (Open Graph, sitemap, données structurées).
+                  absolues (Open Graph, sitemap, robots.txt, flux RSS).
               - label: "Modèle de titre"
                 name: "titleTemplate"
                 widget: "string"
@@ -199,7 +245,7 @@ collections:
                 widget: "boolean"
                 default: true
                 required: false
-                hint: "Désactive globalement l'indexation (utile en pré-production)."
+                hint: "Désactive globalement l'indexation (robots.txt) — utile en pré-production."
               - label: "Compte X / Twitter (@identifiant)"
                 name: "twitterHandle"
                 widget: "string"

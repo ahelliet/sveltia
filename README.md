@@ -95,7 +95,7 @@ Si tu ajoutes un nouveau type de bloc ou changes le style dans `Blocks.svelte`, 
 Deux entrées supplémentaires dans le menu de l'admin, pour le contenu qui n'est pas un article :
 
 - **Navigation** (`content/navigation.json`) — liens du menu, texte et liens du pied de page.
-- **Paramètres globaux** (`content/settings.json`) — nom/description du site, image de partage par défaut, email de contact, et un bloc **Référencement (SEO & GEO)** (voir section dédiée plus bas).
+- **Paramètres globaux** (`content/settings.json`) — nom/description du site, favicon, image de partage par défaut, email de contact, et un bloc **Référencement (SEO & GEO)** (voir section dédiée plus bas).
 
 Ce sont des "file collections" Sveltia CMS (`files:` au lieu de `folder:`) : un seul document éditable par entrée, plutôt qu'une liste d'articles. Les champs actuels sont un point de départ volontairement minimal — à étoffer selon les besoins réels (ajoute simplement des `fields` dans `static/admin/config.yml`, comme pour n'importe quelle collection).
 
@@ -103,9 +103,12 @@ Ces fichiers sont lus par `src/lib/site.ts` (même principe que `src/lib/posts.t
 
 - `src/lib/components/Navigation.svelte` — barre du haut, sticky, avec le nom du site (lien vers l'accueil) et les liens de `navLinks`.
 - `src/lib/components/Footer.svelte` — pied de page avec `footerText` et `footerLinks`.
+- `src/routes/+layout.svelte` — favicon (`settings.favicon`, avec repli sur `src/lib/assets/favicon.svg` si aucun n'est défini dans le CMS).
 - `src/routes/+page.svelte` — utilise `siteName`/`siteDescription` pour l'accueil et le `<title>`.
 
-Les deux sont montés dans `src/routes/+layout.svelte`, donc présents sur toutes les pages. Si tu ajoutes des champs dans `config.yml`, pense à les répercuter dans `src/lib/site.ts` (les types `Navigation`/`Settings`) et dans le composant qui doit les afficher.
+Les deux (`Navigation`/`Footer`) sont montés dans `src/routes/+layout.svelte`, donc présents sur toutes les pages. Si tu ajoutes des champs dans `config.yml`, pense à les répercuter dans `src/lib/site.ts` (les types `Navigation`/`Settings`) et dans le composant qui doit les afficher.
+
+**Liens de navigation par relation** : chaque lien (`navLinks`/`footerLinks`) a un `linkType` (Page / Article de blog / URL personnalisée). Pour "Page" ou "Article de blog", un widget `relation` Sveltia CMS (`collection: "pages"` ou `"posts"`, `value_field: "{{slug}}"`) permet de choisir l'entrée directement dans une liste plutôt que de taper une URL à la main — si cette page/cet article est renommé, le lien reste correct puisqu'il pointe vers l'entrée elle-même, pas vers une chaîne figée. `src/lib/site.ts` (`resolveLinkHref()`) transforme ça en URL réelle (`/<slug>` ou `/blog/<slug>`), et retombe sur le champ `url` libre pour tout le reste (`/blog`, `/`, un lien externe...). Les liens existants créés avant cette fonctionnalité (juste `label`/`url`) continuent de fonctionner tels quels — `linkType` vide se comporte comme `"url"`.
 
 **Aperçu de "Navigation"** : `preview.js` a aussi un `CMS.registerPreviewTemplate('navigation', ...)` qui affiche le même header/footer (mêmes classes Tailwind que `Navigation.svelte`/`Footer.svelte`) avec les liens/le texte en cours d'édition dans cette entrée, plus le vrai nom du site (récupéré via `getCollection('settings')`, comme pour l'aperçu des articles).
 
@@ -113,12 +116,26 @@ Les deux sont montés dans `src/routes/+layout.svelte`, donc présents sur toute
 
 ## Référencement (SEO & GEO)
 
-Deux blocs de champs ajoutés côté CMS pour préparer le référencement — **ce ticket couvre uniquement les champs et leur saisie dans l'admin ; leur exploitation côté site (balises `<meta>`, Open Graph, JSON-LD, `sitemap.xml`, `robots.txt`) est prévue dans une prochaine étape.**
-
-- **Paramètres globaux → Référencement (SEO & GEO)** (`static/admin/config.yml`, objet `seo` dans la collection `settings`) : `siteUrl` (URL de prod, nécessaire pour des URLs absolues), `titleTemplate`, `locale`, `robotsIndexing` (interrupteur global d'indexation), `twitterHandle`/`twitterCardType`, `organizationName`/`organizationLogo` et `sameAs` (réseaux sociaux) pour les données structurées schema.org, `googleSiteVerification`.
-- **Chaque page** (collection `pages`, objet `seo`) et **chaque article** peuvent surcharger ces valeurs par défaut : `metaTitle`, `metaDescription`, `ogImage`, `noIndex`. Si un champ est vide, le site (une fois câblé) devra retomber sur la valeur des paramètres globaux.
+- **Paramètres globaux → Référencement (SEO & GEO)** (`static/admin/config.yml`, objet `seo` dans la collection `settings`, parsé par `src/lib/site.ts`) : `siteUrl` (URL de prod, nécessaire pour des URLs absolues — **à renseigner avant de déployer**, sinon le sitemap/flux RSS contiennent des URLs invalides), `titleTemplate`, `locale`, `robotsIndexing` (interrupteur global d'indexation), `twitterHandle`/`twitterCardType`, `organizationName`/`organizationLogo` et `sameAs` (réseaux sociaux) pour les données structurées schema.org, `googleSiteVerification`.
+- **Chaque page** (collection `pages`) et **chaque article** (collection `posts`) ont un objet `seo` identique (même champs, réutilisés via l'ancre YAML `&seoFields`/`*seoFields`) : `metaTitle`, `metaDescription`, `ogImage`, `noIndex`. Si `metaTitle` est vide, le `<title>` retombe sur le titre de l'entrée (`src/lib/seo.ts`, `parseSeo()`, partagé par `posts.ts`/`pages.ts`).
 
 **SEO vs GEO** : le SEO classique (balises meta, Open Graph, sitemap...) cible les moteurs de recherche traditionnels. Le **GEO (Generative Engine Optimization)** est plus récent et cible les moteurs de réponse basés sur l'IA (résumés, citations dans une réponse générée) — il s'appuie surtout sur des données structurées claires (schema.org `Organization`/`WebSite`, d'où `organizationName`/`sameAs`) et un contenu bien balisé sémantiquement, ce que le page builder (titres, citations, texte en Markdown) fournit déjà côté contenu.
+
+**Reste à câbler** (prochaine étape) : les balises `<meta>` Open Graph/Twitter et les données structurées JSON-LD ne sont pas encore générées dans le `<svelte:head>` des pages — seul le `<title>` (avec surcharge par `metaTitle`) est en place pour l'instant. `metaDescription`/`ogImage`/`noIndex`/`organizationName`/`sameAs` existent déjà côté CMS et types (`Seo`/`SiteSeo`), prêts à être branchés.
+
+## Sitemap, robots.txt et flux RSS
+
+Trois routes SvelteKit générées en fichiers statiques au build (même principe que le reste du site : `export const prerender = true`, et un segment de route avec un point — `sitemap.xml`, `robots.txt` — est traité comme un fichier, pas un dossier) :
+
+- `src/routes/sitemap.xml/+server.ts` — liste `/`, `/blog`, toutes les pages (`getAllPages()`) et tous les articles (`getAllPosts()`), en URLs absolues via `settings.seo.siteUrl`.
+- `src/routes/robots.txt/+server.ts` — `Allow: /` ou `Disallow: /` selon `settings.seo.robotsIndexing`, plus une ligne `Sitemap:` si `siteUrl` est renseigné.
+- `src/routes/rss.xml/+server.ts` — flux RSS 2.0 des articles (titre, lien, date, résumé), pour la distribution de contenu et certains agrégateurs SEO.
+
+Les trois dépendent de `settings.seo.siteUrl` pour produire des URLs absolues correctes — un avertissement s'affiche dans la console au build tant qu'il est vide.
+
+## Page d'erreur (404)
+
+Le site est 100 % statique (pas de serveur applicatif) : une erreur **500** n'a donc pas vraiment de sens ici, elle ne peut venir que de l'hébergeur. Seule la **404** compte, et `adapter-static` en a besoin d'une explicite pour les URLs inconnues sur un hébergeur statique. `src/routes/+error.svelte` remplace la page d'erreur générique de SvelteKit par une page au design du site (elle hérite automatiquement du header/footer, puisqu'elle est rendue à l'intérieur de `+layout.svelte` comme n'importe quelle page) — utilisée à la fois pour les `error(404, ...)` levées dans `blog/[slug]` et `[slug]` (page/article introuvable), et pour le `404.html` que SvelteKit écrit au build pour les URLs qui ne correspondent à aucune route.
 
 ## Déploiement
 

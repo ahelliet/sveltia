@@ -1,6 +1,19 @@
 {
   "siteName": "Sveltia Demo",
   "siteDescription": "",
+  "favicon": "",
   "defaultImage": "",
-  "contactEmail": ""
+  "contactEmail": "",
+  "seo": {
+    "siteUrl": "",
+    "titleTemplate": "%s · %s",
+    "locale": "fr_FR",
+    "robotsIndexing": true,
+    "twitterHandle": "",
+    "twitterCardType": "summary_large_image",
+    "organizationName": "",
+    "organizationLogo": "",
+    "sameAs": [],
+    "googleSiteVerification": ""
+  }
 }

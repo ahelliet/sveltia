@@ -1,6 +1,7 @@
 import matter from 'gray-matter';
 import { marked } from 'marked';
 import { parseBlocks, type Block } from './blocks';
+import { parseSeo, type Seo } from './seo';
 
 export type { Block } from './blocks';
 
@@ -11,6 +12,7 @@ export type Post = {
 	excerpt?: string;
 	heroImage?: string;
 	blocks: Block[];
+	seo: Seo;
 };
 
 // Content lives at the repo root (`content/posts/*.md`) so Sveltia CMS's
@@ -32,7 +34,8 @@ function parsePost(path: string, raw: string): Post {
 		date: data.date ? new Date(data.date).toISOString() : new Date(0).toISOString(),
 		excerpt: data.excerpt,
 		heroImage: data.heroImage,
-		blocks: parseBlocks(data.blocks, marked)
+		blocks: parseBlocks(data.blocks, marked),
+		seo: parseSeo(data.seo)
 	};
 }
 

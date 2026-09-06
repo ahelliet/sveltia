@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.post.title}</title>
+	<title>{data.post.seo.metaTitle || data.post.title}</title>
 </svelte:head>
 
 <article class="mx-auto max-w-3xl px-4 py-12">

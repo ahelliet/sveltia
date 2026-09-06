@@ -57,6 +57,17 @@
 		return (plain && plain.data) || plain || {};
 	}
 
+	// Same link resolution as resolveLinkHref() in src/lib/site.ts: a nav
+	// link points at a CMS page, a blog article, or a free-typed URL
+	// depending on linkType — mirrored here (plain JS, no shared import
+	// possible since this file has no bundler) so the preview never shows a
+	// different link than the real site would produce for the same data.
+	function resolveLinkHref(link) {
+		if (link.linkType === 'page' && link.page) return '/' + link.page;
+		if (link.linkType === 'post' && link.post) return '/blog/' + link.post;
+		return link.url || '#';
+	}
+
 	// Same header/footer markup + Tailwind classes as
 	// src/lib/components/Navigation.svelte and Footer.svelte, shared between
 	// the "posts"/"pages" previews (wrap the whole page) and the
@@ -88,7 +99,7 @@
 									'a',
 									{
 										key: i,
-										href: link.url || '#',
+										href: resolveLinkHref(link),
 										className: 'text-muted-foreground transition-colors hover:text-foreground'
 									},
 									link.label || ''
@@ -119,7 +130,11 @@
 							footerLinks.map(function (link, i) {
 								return h(
 									'a',
-									{ key: i, href: link.url || '#', className: 'transition-colors hover:text-foreground' },
+									{
+										key: i,
+										href: resolveLinkHref(link),
+										className: 'transition-colors hover:text-foreground'
+									},
 									link.label || ''
 								);
 							})

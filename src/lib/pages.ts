@@ -1,22 +1,16 @@
 import matter from 'gray-matter';
 import { marked } from 'marked';
 import { parseBlocks, type Block } from './blocks';
+import { parseSeo, type Seo } from './seo';
 
 export type { Block } from './blocks';
-
-export type PageSeo = {
-	metaTitle?: string;
-	metaDescription?: string;
-	ogImage?: string;
-	noIndex?: boolean;
-};
 
 export type Page = {
 	slug: string;
 	title: string;
 	isHomePage: boolean;
 	blocks: Block[];
-	seo: PageSeo;
+	seo: Seo;
 };
 
 // Routes that a CMS-authored page must not shadow: `/blog` (and its
@@ -40,19 +34,13 @@ const files = import.meta.glob('/content/pages/*.md', {
 function parsePage(path: string, raw: string): Page {
 	const slug = path.split('/').pop()!.replace(/\.md$/, '');
 	const { data } = matter(raw);
-	const seo = (data.seo ?? {}) as Record<string, unknown>;
 
 	return {
 		slug,
 		title: data.title ?? slug,
 		isHomePage: Boolean(data.isHomePage),
 		blocks: parseBlocks(data.blocks, marked),
-		seo: {
-			metaTitle: seo.metaTitle as string | undefined,
-			metaDescription: seo.metaDescription as string | undefined,
-			ogImage: seo.ogImage as string | undefined,
-			noIndex: Boolean(seo.noIndex)
-		}
+		seo: parseSeo(data.seo)
 	};
 }
 
