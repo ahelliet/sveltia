@@ -6,17 +6,23 @@
       "links": [
         {
           "type": "page",
-          "label": "Mentions légales",
-          "page": "mentions-legales",
+          "label": "Politique de confidentialité",
+          "page": "politique-de-confidentialite",
           "anchor": ""
         },
         {
           "type": "page",
-          "label": "Politique de confidentialité",
-          "page": "politique-de-confidentialite",
+          "label": "Mentions légales",
+          "page": "mentions-legales",
           "anchor": ""
         }
       ]
+    },
+    {
+      "type": "page",
+      "label": "A propos",
+      "page": "a-propos",
+      "anchor": ""
     }
   ],
   "footerText": "",
