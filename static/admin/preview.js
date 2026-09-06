@@ -60,25 +60,36 @@
 	// src/lib/components/Navigation.svelte and Footer.svelte, shared between
 	// the "posts" preview (wraps the whole page) and the "navigation" preview
 	// (previews the header/footer content itself).
+	// Same tag (<a>, with a real href), same classes, same wrapper structure
+	// as Navigation.svelte/Footer.svelte — not just visually similar markup,
+	// so there's no discrepancy left to spot between preview and live site.
 	function renderSiteHeader(siteName, navLinks) {
 		return h(
 			'header',
-			{ className: 'border-b border-border bg-background/80 backdrop-blur' },
+			{ className: 'sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur' },
 			h(
 				'div',
 				{
 					className:
 						'mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4'
 				},
-				h('span', { className: 'text-lg font-semibold tracking-tight' }, siteName || 'Nom du site'),
+				h(
+					'a',
+					{ href: '/', className: 'text-lg font-semibold tracking-tight' },
+					siteName || 'Nom du site'
+				),
 				navLinks && navLinks.length
 					? h(
 							'nav',
 							{ className: 'flex flex-wrap items-center gap-6 text-sm' },
 							navLinks.map(function (link, i) {
 								return h(
-									'span',
-									{ key: i, className: 'text-muted-foreground' },
+									'a',
+									{
+										key: i,
+										href: link.url || '#',
+										className: 'text-muted-foreground transition-colors hover:text-foreground'
+									},
 									link.label || ''
 								);
 							})
@@ -105,7 +116,11 @@
 							'nav',
 							{ className: 'flex flex-wrap gap-4' },
 							footerLinks.map(function (link, i) {
-								return h('span', { key: i }, link.label || '');
+								return h(
+									'a',
+									{ key: i, href: link.url || '#', className: 'transition-colors hover:text-foreground' },
+									link.label || ''
+								);
 							})
 						)
 					: null
