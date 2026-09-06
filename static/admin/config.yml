@@ -3,7 +3,7 @@
 backend:
   name: github
   # Remplace par ton propre dépôt "owner/repo" avant de déployer.
-  repo: owner/repo
+  repo: ahelliet/sveltia
   branch: main
   # Pour l'auth OAuth via un petit worker Cloudflare (recommandé à plusieurs
   # éditeurs) plutôt que le "Sign In with Token" par défaut, décommente et
