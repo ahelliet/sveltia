@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+
+backend:
+  name: github
+  # Remplace par ton propre dépôt "owner/repo" avant de déployer.
+  repo: owner/repo
+  branch: main
+  # Pour l'auth OAuth via un petit worker Cloudflare (recommandé à plusieurs
+  # éditeurs) plutôt que le "Sign In with Token" par défaut, décommente et
+  # renseigne l'URL une fois le worker déployé (voir README) :
+  # base_url: https://ton-worker.workers.dev
+
+media_folder: "static/images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "posts"
+    label: "Articles"
+    folder: "content/posts"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Titre", name: "title", widget: "string" }
+      - { label: "Date de publication", name: "date", widget: "datetime" }
+      - { label: "Résumé", name: "excerpt", widget: "text", required: false }
+      - { label: "Image principale", name: "heroImage", widget: "image", required: false }
+      - { label: "Contenu", name: "body", widget: "markdown" }
