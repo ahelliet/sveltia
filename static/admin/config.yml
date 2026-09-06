@@ -16,9 +16,11 @@ locale: "fr"
 # Décommente une fois le site déployé (même URL que "Paramètres globaux →
 # Référencement → URL du site") : ajoute un lien "Voir le site" dans l'admin.
 # site_url: https://mon-site.fr
-# Décommente si tu ajoutes un logo (autre que l'icône par défaut) pour
-# personnaliser l'en-tête de l'admin :
-# logo_url: /images/logo.svg
+# Logo personnalisé affiché dans l'en-tête de l'admin (remplace l'icône par
+# défaut de Sveltia CMS), visible dès le chargement du CMS. Pour l'instant on
+# réutilise l'icône du site (static/images/logo.svg) — remplace ce fichier
+# par ton propre logo quand tu en as un.
+logo_url: /images/logo.svg
 
 # Évite les accents/caractères spéciaux dans les slugs générés depuis des
 # titres en français (ex : "Bilan à mi-année" -> "bilan-a-mi-annee" plutôt
