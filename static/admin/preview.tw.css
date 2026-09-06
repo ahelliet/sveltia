@@ -1,0 +1,16 @@
+/*
+ * Compiled by `pnpm run build:admin-css` (Tailwind CLI) into
+ * static/admin/preview.css, NOT edited by hand. Importing the site's real
+ * app.css pulls in the same Tailwind build + the shadcn-svelte design
+ * tokens (CSS variables), so `bg-card`, `text-muted-foreground`, etc.
+ * resolve to the same colors as the live site. `static/admin/` has no
+ * bundler of its own (it's plain files served straight from disk), which
+ * is why this needs its own dedicated compile step instead of just reusing
+ * SvelteKit's build output.
+ */
+@import '../../src/app.css';
+
+/* Scans preview.js for the class names used there — the same block markup
+   isn't part of the SvelteKit app, so it's outside Tailwind's default
+   scan path and has to be registered explicitly. */
+@source './preview.js';

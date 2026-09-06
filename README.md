@@ -47,11 +47,27 @@ Pour ajouter un nouveau type de bloc :
 
 L'article `content/posts/hello-world.md` contient un exemple de chaque type pour voir le rendu tout de suite (`pnpm dev` puis `/blog/hello-world`).
 
+### Design system (Tailwind + shadcn-svelte)
+
+Les blocs sont stylés avec [Tailwind CSS v4](https://tailwindcss.com/) et des composants [shadcn-svelte](https://www.shadcn-svelte.com/) (`AspectRatio`, `Card`, `Carousel`) plutôt que du CSS écrit à la main : accessibilité (focus, clavier, ARIA) gérée par les primitives [bits-ui](https://bits-ui.com/) sous-jacentes, thème centralisé dans `src/app.css` (variables de couleur, radius — modifiable via `pnpm dlx shadcn-svelte@latest init` ou en éditant les `--variables` directement), et de nouveaux composants ajoutables à la demande (`pnpm dlx shadcn-svelte@latest add <composant>`).
+
+- `src/app.css` : import Tailwind, plugin `@tailwindcss/typography` (classes `prose`/`prose-invert` pour le HTML issu du markdown), variables de thème shadcn-svelte.
+- `src/lib/components/ui/` : composants shadcn-svelte installés (copiés dans le repo, pas une dépendance figée — tu peux les modifier librement).
+- `src/lib/components/Blocks.svelte` : utilise ces composants pour chaque type de bloc (`AspectRatio` pour les images, `Card`+`Carousel` pour la galerie, classes Tailwind pour Texte/Citation).
+
 ### Aperçu réaliste dans l'admin
 
-Par défaut, l'aperçu de Sveltia CMS affiche les blocs de façon brute (markdown non rendu, pas de mise en page). `static/admin/preview.js` et `static/admin/preview.css` remplacent cet aperçu par un rendu qui reproduit `src/lib/components/Blocks.svelte` (via `CMS.registerPreviewTemplate`/`registerPreviewStyle`, les API de personnalisation de Sveltia CMS). Comme l'admin n'a pas de build step, ce script utilise les globals `h()`/`createClass()` exposés par Sveltia CMS (pas de JSX) et charge `marked` par CDN pour rendre le markdown des blocs.
+Par défaut, l'aperçu de Sveltia CMS affiche les blocs de façon brute (markdown non rendu, pas de mise en page). `static/admin/preview.js` remplace cet aperçu par un rendu qui se rapproche de `src/lib/components/Blocks.svelte` (via `CMS.registerPreviewTemplate`, l'API de personnalisation de Sveltia CMS), stylé avec `static/admin/preview.css`. Comme l'admin n'a pas de build step, ce script utilise les globals `h()`/`createClass()` exposés par Sveltia CMS (pas de JSX) et charge `marked` par CDN pour rendre le markdown des blocs — c'est une **approximation** : les composants shadcn-svelte (`Card`, `AspectRatio`, `Carousel`) n'existent que dans l'app SvelteKit, donc leur effet visuel est reproduit avec les mêmes classes Tailwind sur des éléments simples (pas de vrai carousel embla, une rangée défilante à la place).
 
-Si tu ajoutes un nouveau type de bloc ou changes le style dans `Blocks.svelte`, pense à répercuter le changement dans `preview.js`/`preview.css` — les deux ne partagent pas de code (l'un tourne dans SvelteKit, l'autre dans l'admin chargé par CDN).
+**`static/admin/preview.css` n'est pas écrit à la main : c'est un fichier généré**, compilé par le CLI Tailwind à partir de `static/admin/preview.tw.css` (qui réimporte `src/app.css`, donc récupère exactement les mêmes variables de couleur/thème que le site) :
+
+```sh
+pnpm run build:admin-css
+```
+
+Cette commande tourne automatiquement avant `pnpm dev` et avant `pnpm build` (hooks npm `predev`/`prebuild` dans `package.json`) — donc l'aperçu admin ne peut pas devenir obsolète, que ce soit en local ou lors d'un build de déploiement (Netlify, Cloudflare Pages, une Action GitHub Pages : tous appellent `pnpm run build` à un moment). Pas besoin de CI dédiée ni d'étape manuelle avant de pousser.
+
+Si tu ajoutes un nouveau type de bloc ou changes le style dans `Blocks.svelte`, répercute le changement dans `preview.js` (le rendu ne partage pas de code avec l'app SvelteKit) — la partie couleurs/thème, elle, se met à jour toute seule au prochain `pnpm dev`/`pnpm build` puisqu'elle vient directement de `src/app.css`.
 
 ## Déploiement
 
@@ -69,7 +85,9 @@ Aucune variable d'environnement, aucune fonction serverless nécessaire.
 
 | Commande | Effet |
 | --- | --- |
-| `pnpm dev` | Site en local |
-| `pnpm build` | Build statique complet (`build/`) |
+| `pnpm dev` | Site en local (régénère `static/admin/preview.css` avant de démarrer) |
+| `pnpm build` | Build statique complet (`build/`), régénère `static/admin/preview.css` avant |
+| `pnpm build:admin-css` | Recompile juste `static/admin/preview.css` depuis `preview.tw.css` |
 | `pnpm preview` | Aperçu du build |
 | `pnpm check` | Vérification TypeScript/Svelte |
+| `pnpm dlx shadcn-svelte@latest add <composant>` | Ajoute un nouveau composant shadcn-svelte dans `src/lib/components/ui/` |
