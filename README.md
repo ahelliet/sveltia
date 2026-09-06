@@ -139,6 +139,8 @@ Quelques réglages de confort/hygiène côté `static/admin/config.yml`, indépe
 - **Date pré-remplie** (`default: "{{now}}"` sur le champ `date` des articles) — plus besoin de la ressaisir à chaque nouvel article.
 - **Bug corrigé : alt manquant sur le bloc "Image + Texte"** — ce bloc avait un champ image mais aucun champ "texte alternatif" (`alt` mis à `""` en dur dans `Blocks.svelte`), contrairement aux blocs Image et Galerie. Champ ajouté dans `config.yml`, `src/lib/blocks.ts` (`ImageTextBlock`) et `Blocks.svelte`.
 - **Chargement paresseux des images** (`loading="lazy"`) sur les blocs Image/Image+Texte/Galerie dans `Blocks.svelte` — ce contenu est généralement sous la ligne de flottaison. L'image principale (`heroImage`) reste en chargement normal puisqu'elle s'affiche immédiatement. Répercuté dans `preview.js` pour la parité aperçu/site.
+- **Fichiers uploadés normalisés et plafonnés** (`media_library.config.slugify_filename`/`max_file_size`) : les images uploadées depuis l'admin sont renommées sans accents/espaces (même logique que les slugs d'articles/pages), et limitées à 5 Mo — ce site n'a pas de pipeline d'optimisation d'image côté CMS, donc autant éviter qu'un gros fichier non compressé se retrouve publié tel quel.
+- **Lien "Voir en ligne" depuis une entrée** (`preview_path` sur `posts`/`pages`) : un lien direct vers l'URL réelle de l'article/de la page, visible dans l'admin en train d'éditer. Fonctionne même sans "URL du site" renseignée dans Paramètres globaux — Sveltia CMS retombe sur l'origine courante (`localhost:...` en dev, le vrai domaine une fois déployé).
 
 ## Sitemap, robots.txt et flux RSS
 

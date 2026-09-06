@@ -41,6 +41,18 @@ slug:
 media_folder: "static/images/uploads"
 public_folder: "/images/uploads"
 
+# Fichiers uploadés (images) : noms normalisés (mêmes règles que les slugs
+# d'articles/pages ci-dessus — plus d'accents/espaces dans les URLs
+# d'images) et taille plafonnée à 5 Mo. Ce site n'a pas de pipeline
+# d'optimisation d'image côté CMS (les images restent telles quelles dans
+# static/), d'où l'intérêt d'éviter qu'un gros fichier non compressé finisse
+# publié tel quel.
+media_library:
+  name: default
+  config:
+    slugify_filename: true
+    max_file_size: 5242880 # 5 Mo
+
 collections:
   - name: "posts"
     label: "Articles"
@@ -53,6 +65,11 @@ collections:
     # plutôt que mélangés avec ceux des pages/paramètres globaux.
     media_folder: "{{media_folder}}/posts"
     public_folder: "{{public_folder}}/posts"
+    # Lien "Voir en ligne" dans l'admin, vers l'URL réelle de l'article
+    # (src/routes/blog/[slug]/+page.svelte). Fonctionne même sans "URL du
+    # site" renseignée : Sveltia CMS retombe sur l'origine courante
+    # (localhost en dev, le vrai domaine une fois déployé).
+    preview_path: "blog/{{slug}}"
     fields:
       - { label: "Titre", name: "title", widget: "string" }
       - label: "Date de publication"
@@ -158,6 +175,11 @@ collections:
     sortable_fields: ["title"]
     media_folder: "{{media_folder}}/pages"
     public_folder: "{{public_folder}}/pages"
+    # Même principe que "posts" ci-dessus (src/routes/[slug]/+page.svelte).
+    # Pour la page marquée "Définir comme page d'accueil", ça pointe vers
+    # /<slug> plutôt que / — la page reste accessible aux deux URLs (voir le
+    # README, section "Pages (multipage)"), donc le lien reste valide.
+    preview_path: "{{slug}}"
     fields:
       - { label: "Titre", name: "title", widget: "string" }
       - label: "Définir comme page d'accueil"
