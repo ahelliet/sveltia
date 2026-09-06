@@ -123,6 +123,18 @@ Les deux (`Navigation`/`Footer`) sont montés dans `src/routes/+layout.svelte`, 
 
 **Reste à câbler** (prochaine étape) : les balises `<meta>` Open Graph/Twitter et les données structurées JSON-LD ne sont pas encore générées dans le `<svelte:head>` des pages — seul le `<title>` (avec surcharge par `metaTitle`) est en place pour l'instant. `metaDescription`/`ogImage`/`noIndex`/`organizationName`/`sameAs` existent déjà côté CMS et types (`Seo`/`SiteSeo`), prêts à être branchés.
 
+## Réglages admin et bonnes pratiques CMS
+
+Quelques réglages de confort/hygiène côté `static/admin/config.yml`, indépendants des fonctionnalités ci-dessus :
+
+- **Interface en français** (`locale: "fr"`, en haut du fichier) : les libellés propres à Sveltia CMS (boutons, menus...) s'affichent en français plutôt qu'en anglais — les champs eux-mêmes sont déjà tous en français puisque c'est nous qui les avons nommés.
+- **Slugs sans accents** (`slug: { encoding: "ascii", clean_accents: true }`, top-level) : un titre comme "Bilan à mi-année" donne un slug propre (`bilan-a-mi-annee`) plutôt que des caractères non-ASCII dans l'URL.
+- **Lien "Voir le site" et logo admin** : `site_url`/`logo_url` sont préparés en commentaire en haut du fichier, à décommenter une fois le site déployé (même URL que "Paramètres globaux → Référencement → URL du site") et/ou si tu ajoutes un logo personnalisé.
+- **Listes triables et plus lisibles** : `summary`/`sortable_fields` sur `posts` (tri par titre/date, résumé "Titre — Date" dans la liste) et `pages` — sans ça, l'admin n'affiche que le nom du fichier.
+- **Médias rangés par collection** (`media_folder`/`public_folder` par collection, ex : `{{media_folder}}/posts`) : les images uploadées depuis un article vont dans `static/images/uploads/posts/`, celles d'une page dans `.../pages/`, plutôt que tout mélangé dans un seul dossier — ça reste `static/images/uploads/` (racine) pour les images des paramètres globaux (favicon, image par défaut, logo d'organisation).
+- **Texte alternatif de l'image principale des articles** (`heroImageAlt`, collection `posts`) : jusqu'ici l'attribut `alt` retombait toujours sur le titre de l'article, ce qui n'est pas toujours une bonne description de l'image pour un lecteur d'écran. Champ optionnel, avec ce même repli si vide.
+- **Validation de champs** : `pattern` (regex + message d'erreur affiché dans l'admin) sur l'email de contact (format email), et sur `metaTitle`/`metaDescription`/`siteDescription` (60/155 caractères — au-delà, Google tronque le titre/la description dans les résultats de recherche).
+
 ## Sitemap, robots.txt et flux RSS
 
 Trois routes SvelteKit générées en fichiers statiques au build (même principe que le reste du site : `export const prerender = true`, et un segment de route avec un point — `sitemap.xml`, `robots.txt` — est traité comme un fichier, pas un dossier) :

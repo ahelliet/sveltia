@@ -11,6 +11,7 @@ export type Post = {
 	date: string;
 	excerpt?: string;
 	heroImage?: string;
+	heroImageAlt?: string;
 	blocks: Block[];
 	seo: Seo;
 };
@@ -34,6 +35,7 @@ function parsePost(path: string, raw: string): Post {
 		date: data.date ? new Date(data.date).toISOString() : new Date(0).toISOString(),
 		excerpt: data.excerpt,
 		heroImage: data.heroImage,
+		heroImageAlt: data.heroImageAlt,
 		blocks: parseBlocks(data.blocks, marked),
 		seo: parseSeo(data.seo)
 	};

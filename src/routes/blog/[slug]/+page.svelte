@@ -17,7 +17,11 @@
 	</p>
 	{#if data.post.heroImage}
 		<AspectRatio ratio={16 / 9} class="mt-6 overflow-hidden rounded-2xl bg-muted">
-			<img src={data.post.heroImage} alt={data.post.title} class="h-full w-full object-cover" />
+			<img
+				src={data.post.heroImage}
+				alt={data.post.heroImageAlt || data.post.title}
+				class="h-full w-full object-cover"
+			/>
 		</AspectRatio>
 	{/if}
 

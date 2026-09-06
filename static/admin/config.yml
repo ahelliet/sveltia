@@ -9,6 +9,24 @@ backend:
   # renseigne l'URL une fois le worker déployé (voir README) :
   # base_url: https://ton-worker.workers.dev
 
+# Interface d'administration en français (éditeurs francophones) plutôt que
+# l'anglais par défaut.
+locale: "fr"
+
+# Décommente une fois le site déployé (même URL que "Paramètres globaux →
+# Référencement → URL du site") : ajoute un lien "Voir le site" dans l'admin.
+# site_url: https://mon-site.fr
+# Décommente si tu ajoutes un logo (autre que l'icône par défaut) pour
+# personnaliser l'en-tête de l'admin :
+# logo_url: /images/logo.svg
+
+# Évite les accents/caractères spéciaux dans les slugs générés depuis des
+# titres en français (ex : "Bilan à mi-année" -> "bilan-a-mi-annee" plutôt
+# que des caractères encodés ou non-ASCII dans l'URL).
+slug:
+  encoding: "ascii"
+  clean_accents: true
+
 media_folder: "static/images/uploads"
 public_folder: "/images/uploads"
 
@@ -18,11 +36,22 @@ collections:
     folder: "content/posts"
     create: true
     slug: "{{slug}}"
+    summary: "{{title}} — {{date}}"
+    sortable_fields: ["title", "date"]
+    # Uploads depuis cette collection rangés dans leur propre sous-dossier
+    # plutôt que mélangés avec ceux des pages/paramètres globaux.
+    media_folder: "{{media_folder}}/posts"
+    public_folder: "{{public_folder}}/posts"
     fields:
       - { label: "Titre", name: "title", widget: "string" }
       - { label: "Date de publication", name: "date", widget: "datetime" }
       - { label: "Résumé", name: "excerpt", widget: "text", required: false }
       - { label: "Image principale", name: "heroImage", widget: "image", required: false }
+      - label: "Texte alternatif de l'image principale"
+        name: "heroImageAlt"
+        widget: "string"
+        required: false
+        hint: "Décrit l'image pour les lecteurs d'écran. Si vide, utilise le titre de l'article."
       - label: "Blocs de contenu (page builder)"
         name: "blocks"
         widget: "list"
@@ -78,11 +107,13 @@ collections:
             name: "metaTitle"
             widget: "string"
             required: false
+            pattern: ["^.{0,60}$", "60 caractères maximum (au-delà, Google tronque le titre)."]
             hint: "Si vide, utilise le titre ci-dessus."
           - label: "Description meta (SEO)"
             name: "metaDescription"
             widget: "text"
             required: false
+            pattern: ["^.{0,155}$", "155 caractères maximum (au-delà, Google tronque la description)."]
             hint: "Si vide, utilise la description par défaut des paramètres globaux."
           - label: "Image de partage (Open Graph)"
             name: "ogImage"
@@ -100,6 +131,10 @@ collections:
     folder: "content/pages"
     create: true
     slug: "{{slug}}"
+    summary: "{{title}}"
+    sortable_fields: ["title"]
+    media_folder: "{{media_folder}}/pages"
+    public_folder: "{{public_folder}}/pages"
     fields:
       - { label: "Titre", name: "title", widget: "string" }
       - label: "Définir comme page d'accueil"
@@ -194,6 +229,7 @@ collections:
             name: "siteDescription"
             widget: "text"
             required: false
+            pattern: ["^.{0,155}$", "155 caractères maximum (au-delà, Google tronque la description)."]
             hint: "Sert aussi de description meta (SEO) par défaut."
           - label: "Favicon"
             name: "favicon"
@@ -209,6 +245,11 @@ collections:
             name: "contactEmail"
             widget: "string"
             required: false
+            pattern:
+              [
+                "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+                "Merci de saisir une adresse email valide (ex : contact@mon-site.fr).",
+              ]
           - label: "Référencement (SEO & GEO)"
             name: "seo"
             widget: "object"

@@ -414,7 +414,7 @@
 						{ key: 'hero', className: 'mt-6 aspect-video overflow-hidden rounded-2xl bg-muted' },
 						h('img', {
 							src: resolveImage(data.heroImage),
-							alt: data.title || '',
+							alt: data.heroImageAlt || data.title || '',
 							className: 'h-full w-full object-cover'
 						})
 					)
