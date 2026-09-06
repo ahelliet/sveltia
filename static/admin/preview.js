@@ -267,6 +267,78 @@
 		}
 	});
 
+	// Preview for the "navigation" file entry (Navigation.svelte + Footer.svelte
+	// on the real site): mocks the same header/footer layout and Tailwind
+	// classes so an editor sees roughly where their links/text will land. The
+	// site name shown here is a static placeholder — it actually lives in the
+	// separate "Paramètres globaux" entry, which has no data connection to
+	// this one in a plain preview template.
+	var NavigationPreview = createClass({
+		render: function () {
+			var entry = this.props.entry;
+			var data = toPlain(entry.get('data')) || {};
+			var navLinks = Array.isArray(data.navLinks) ? data.navLinks : [];
+			var footerLinks = Array.isArray(data.footerLinks) ? data.footerLinks : [];
+
+			return h(
+				'div',
+				{ className: 'flex min-h-[420px] flex-col justify-between' },
+				h(
+					'header',
+					{ className: 'border-b border-border bg-background/80 backdrop-blur' },
+					h(
+						'div',
+						{
+							className:
+								'mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4'
+						},
+						h('span', { className: 'text-lg font-semibold tracking-tight' }, 'Nom du site'),
+						navLinks.length
+							? h(
+									'nav',
+									{ className: 'flex flex-wrap items-center gap-6 text-sm' },
+									navLinks.map(function (link, i) {
+										return h(
+											'span',
+											{ key: i, className: 'text-muted-foreground' },
+											link.label || ''
+										);
+									})
+								)
+							: null
+					)
+				),
+				h(
+					'div',
+					{ className: 'flex-1 px-4 py-10 text-center text-sm text-muted-foreground' },
+					'← le contenu des articles s\'affiche ici'
+				),
+				h(
+					'footer',
+					{ className: 'border-t border-border' },
+					h(
+						'div',
+						{
+							className:
+								'mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between'
+						},
+						h('p', {}, data.footerText || ''),
+						footerLinks.length
+							? h(
+									'nav',
+									{ className: 'flex flex-wrap gap-4' },
+									footerLinks.map(function (link, i) {
+										return h('span', { key: i }, link.label || '');
+									})
+								)
+							: null
+					)
+				)
+			);
+		}
+	});
+
 	CMS.registerPreviewStyle('preview.css');
 	CMS.registerPreviewTemplate('posts', PostPreview);
+	CMS.registerPreviewTemplate('navigation', NavigationPreview);
 })();

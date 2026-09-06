@@ -91,6 +91,8 @@ collections:
 
   - name: "settings"
     label: "Paramètres globaux"
+    editor:
+      preview: false # données informatives (nom du site, email...), pas de rendu visuel à prévisualiser
     files:
       - name: "settings"
         label: "Paramètres globaux"

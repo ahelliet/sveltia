@@ -86,6 +86,10 @@ Ces fichiers sont lus par `src/lib/site.ts` (même principe que `src/lib/posts.t
 
 Les deux sont montés dans `src/routes/+layout.svelte`, donc présents sur toutes les pages. Si tu ajoutes des champs dans `config.yml`, pense à les répercuter dans `src/lib/site.ts` (les types `Navigation`/`Settings`) et dans le composant qui doit les afficher.
 
+**Aperçu de "Navigation"** : `preview.js` a aussi un `CMS.registerPreviewTemplate('navigation', ...)` qui mock un header/footer avec les mêmes classes Tailwind que `Navigation.svelte`/`Footer.svelte`, pour montrer où atterrissent les liens/le texte édités (le nom du site y est un texte fixe, cette entrée n'ayant pas accès aux données de "Paramètres globaux").
+
+**Pas d'aperçu pour "Paramètres globaux"** : `editor: { preview: false }` sur cette collection désactive le panneau d'aperçu — ce ne sont que des données informatives (nom du site, email...), sans rendu visuel propre à prévisualiser.
+
 ## Déploiement
 
 Fonctionne sur n'importe quel hébergeur statique. Exemple Netlify :
