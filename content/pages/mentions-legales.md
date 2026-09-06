@@ -1,8 +1,8 @@
 ---
-title: "Mentions légales"
+title: Mentions légales
 blocks:
   - type: text
-    body: |
+    body: |-
       ## Éditeur du site
 
       **[Nom complet de l'association]**, association loi 1901
@@ -22,8 +22,8 @@ blocks:
       [Adresse de l'hébergeur]
       [Téléphone de l'hébergeur]
 
-      *(À compléter une fois l'hébergeur choisi — voir la section « Déploiement »
-      du README du projet.)*
+      \*(À compléter une fois l'hébergeur choisi — voir la section « Déploiement »
+      du README du projet.)\*
 
       ## Propriété intellectuelle
 
@@ -35,4 +35,5 @@ blocks:
 
       Le traitement des données personnelles collectées sur ce site est décrit
       dans notre [politique de confidentialité](/politique-de-confidentialite).
+seo: null
 ---
