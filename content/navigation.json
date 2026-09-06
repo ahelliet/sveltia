@@ -2,11 +2,6 @@
   "navLinks": [
     {
       "type": "url",
-      "label": "Accueil 2",
-      "url": "/"
-    },
-    {
-      "type": "url",
       "label": "Blog",
       "url": "/blog"
     },
