@@ -45,7 +45,9 @@ Utile pour se relire (ou se faire relire) avant publication, ou préparer un con
 
 ## Page builder (blocs de contenu)
 
-Tout le contenu d'un article passe par le champ `blocks` (`widget: list` avec `types`), qui permet d'empiler des blocs réordonnables dans l'admin : **Texte** (markdown libre, pour remplacer un simple paragraphe), **Image**, **Image + Texte**, **Citation**, **Galerie**. Il n'y a volontairement pas de champ "Contenu" séparé : ça évite d'avoir deux endroits différents où écrire du texte. Chaque type est défini dans `static/admin/config.yml`, et rendu côté site par `src/lib/components/Blocks.svelte` à partir des données typées dans `src/lib/blocks.ts` (type `Block`, `parseBlocks()` — partagé entre articles et pages, voir plus bas).
+Tout le contenu d'un article passe par le champ `blocks` (`widget: list` avec `types`), qui permet d'empiler des blocs réordonnables dans l'admin : **Texte** (markdown libre, pour remplacer un simple paragraphe), **Image**, **Image + Texte**, **Citation**, **Galerie**, **Documents téléchargeables**. Il n'y a volontairement pas de champ "Contenu" séparé : ça évite d'avoir deux endroits différents où écrire du texte. Chaque type est défini dans `static/admin/config.yml`, et rendu côté site par `src/lib/components/Blocks.svelte` à partir des données typées dans `src/lib/blocks.ts` (type `Block`, `parseBlocks()` — partagé entre articles et pages, voir plus bas).
+
+**Documents téléchargeables** : une liste de fichiers PDF (règlement intérieur, statuts, bulletin d'adhésion, certificat médical...), chacun avec un titre et une description optionnelle. Utilise le widget `file` de Sveltia CMS (plutôt que `image`) avec `accept: "application/pdf"` pour limiter le sélecteur aux PDF — `file` accepte n'importe quel type par défaut, contrairement à `image`. Rendu comme une liste de liens (ouverture dans un nouvel onglet) plutôt qu'un forçage de téléchargement, pour laisser le visiteur consulter le PDF dans son navigateur avant de l'enregistrer s'il le souhaite.
 
 Pour ajouter un nouveau type de bloc :
 

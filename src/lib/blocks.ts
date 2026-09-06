@@ -14,8 +14,16 @@ export type ImageTextBlock = {
 };
 export type QuoteBlock = { type: 'quote'; quote: string; author?: string };
 export type GalleryBlock = { type: 'gallery'; images: { image: string; alt?: string }[] };
+export type DocumentItem = { label: string; file: string; description?: string };
+export type DocumentsBlock = { type: 'documents'; documents: DocumentItem[] };
 
-export type Block = TextBlock | ImageBlock | ImageTextBlock | QuoteBlock | GalleryBlock;
+export type Block =
+	| TextBlock
+	| ImageBlock
+	| ImageTextBlock
+	| QuoteBlock
+	| GalleryBlock
+	| DocumentsBlock;
 
 // Turns the raw frontmatter `blocks` array (written by Sveltia CMS's
 // list-with-types widget — one variant per block `name` in config.yml) into
@@ -61,6 +69,17 @@ export function parseBlocks(raw: unknown, marked: { parse: (s: string, o: { asyn
 							? (block.images as Record<string, unknown>[]).map((img) => ({
 									image: String(img.image ?? ''),
 									alt: img.alt as string | undefined
+								}))
+							: []
+					};
+				case 'documents':
+					return {
+						type: 'documents',
+						documents: Array.isArray(block.documents)
+							? (block.documents as Record<string, unknown>[]).map((doc) => ({
+									label: String(doc.label ?? ''),
+									file: String(doc.file ?? ''),
+									description: doc.description as string | undefined
 								}))
 							: []
 					};

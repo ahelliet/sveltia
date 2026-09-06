@@ -147,6 +147,28 @@ collections:
                 fields:
                   - { label: "Image", name: "image", widget: "image" }
                   - { label: "Texte alternatif", name: "alt", widget: "string", required: false }
+          - label: "Documents téléchargeables"
+            name: "documents"
+            widget: "object"
+            fields:
+              - label: "Documents"
+                name: "documents"
+                widget: "list"
+                summary: "{{fields.label}}"
+                fields:
+                  - { label: "Titre du document", name: "label", widget: "string" }
+                  - label: "Fichier (PDF)"
+                    name: "file"
+                    widget: "file"
+                    # Limite le sélecteur de fichiers aux PDF (règlement,
+                    # statuts, bulletin d'adhésion, certificat médical...) —
+                    # le widget "file" accepte n'importe quel type de
+                    # fichier par défaut, contrairement au widget "image".
+                    accept: "application/pdf"
+                  - label: "Description (optionnel)"
+                    name: "description"
+                    widget: "string"
+                    required: false
       - label: "Référencement (SEO)"
         name: "seo"
         widget: "object"
