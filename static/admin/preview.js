@@ -4,12 +4,15 @@
 // no build step to run actual Svelte components in. Built with the
 // h()/createClass() globals Sveltia CMS exposes for non-JSX previews.
 //
-// This is an approximation, not a 1:1 mirror: the shadcn-svelte Card,
-// AspectRatio and Carousel *components* only exist inside the SvelteKit
-// app, so here their visual effect is reproduced with the same Tailwind
-// utility classes on plain elements (aspect-video/aspect-[4/3] instead of
-// <AspectRatio>, a scrollable flex row instead of the real embla carousel).
-// The colors, spacing and radius still come from the real src/app.css via
+// This is an approximation, not a 1:1 mirror: the shadcn-svelte Card and
+// AspectRatio *components* only exist inside the SvelteKit app, so their
+// visual effect is reproduced with the same Tailwind utility classes on
+// plain elements (aspect-video/aspect-[4/3] instead of <AspectRatio>). The
+// gallery is the exception: it initializes a real embla-carousel instance
+// (loaded via CDN, same library embla-carousel-svelte wraps) on the
+// rendered markup in componentDidMount/componentDidUpdate, so it actually
+// drags/snaps/has working prev-next buttons, not just a static mock.
+// Colors, spacing and radius come from the real src/app.css via
 // static/admin/preview.tw.css -> preview.css, so it stays visually close.
 //
 // If you change the layout/classes in Blocks.svelte or +page.svelte,
@@ -32,6 +35,57 @@
 	}
 
 	var PostPreview = createClass({
+		// Real embla-carousel (the same library embla-carousel-svelte wraps for
+		// the shadcn-svelte Carousel component) instead of a static scroller, so
+		// the gallery in the preview actually drags/snaps like on the live site.
+		componentDidMount: function () {
+			this._initCarousels();
+		},
+
+		componentDidUpdate: function () {
+			this._destroyCarousels();
+			this._initCarousels();
+		},
+
+		componentWillUnmount: function () {
+			this._destroyCarousels();
+		},
+
+		_initCarousels: function () {
+			var doc = this.props.document || document;
+			if (typeof window.EmblaCarousel !== 'function') return;
+
+			this._emblaApis = [];
+
+			doc.querySelectorAll('[data-embla-viewport]').forEach(function (viewport) {
+				var key = viewport.getAttribute('data-embla-viewport');
+				var api = window.EmblaCarousel(viewport, { loop: false });
+				var prevBtn = doc.querySelector('[data-embla-prev="' + key + '"]');
+				var nextBtn = doc.querySelector('[data-embla-next="' + key + '"]');
+
+				function updateButtons() {
+					if (prevBtn) prevBtn.disabled = !api.canScrollPrev();
+					if (nextBtn) nextBtn.disabled = !api.canScrollNext();
+				}
+
+				if (prevBtn) prevBtn.addEventListener('click', function () { api.scrollPrev(); });
+				if (nextBtn) nextBtn.addEventListener('click', function () { api.scrollNext(); });
+
+				api.on('select', updateButtons);
+				api.on('reInit', updateButtons);
+				updateButtons();
+
+				this._emblaApis.push(api);
+			}, this);
+		},
+
+		_destroyCarousels: function () {
+			(this._emblaApis || []).forEach(function (api) {
+				api.destroy();
+			});
+			this._emblaApis = [];
+		},
+
 		render: function () {
 			var entry = this.props.entry;
 			var getAsset = this.props.getAsset;
@@ -143,28 +197,61 @@
 
 					if (block.type === 'gallery') {
 						var images = Array.isArray(block.images) ? block.images : [];
+						var carouselKey = 'gallery-' + i;
+						var buttonBase =
+							'absolute inset-y-0 my-auto flex size-8 items-center justify-center rounded-full border border-border bg-background text-sm font-medium hover:bg-muted disabled:pointer-events-none disabled:opacity-50';
+
 						return h(
 							'div',
-							{ key: key, className: 'flex gap-4 overflow-x-auto pb-2' },
-							images.map(function (img, j) {
-								return h(
+							{ key: key, className: 'relative' },
+							h(
+								'div',
+								{ className: 'overflow-hidden', 'data-embla-viewport': carouselKey },
+								h(
 									'div',
-									{
-										key: j,
-										className:
-											'w-64 shrink-0 overflow-hidden rounded-4xl bg-card shadow-md ring-1 ring-foreground/5'
-									},
-									h(
-										'div',
-										{ className: 'aspect-[4/3] overflow-hidden' },
-										h('img', {
-											src: resolveImage(img.image),
-											alt: img.alt || '',
-											className: 'h-full w-full object-cover'
-										})
-									)
-								);
-							})
+									{ className: 'flex -ms-4', 'data-embla-container': carouselKey },
+									images.map(function (img, j) {
+										return h(
+											'div',
+											{ key: j, className: 'min-w-0 shrink-0 grow-0 basis-full ps-4' },
+											h(
+												'div',
+												{
+													className:
+														'overflow-hidden rounded-4xl bg-card shadow-md ring-1 ring-foreground/5'
+												},
+												h(
+													'div',
+													{ className: 'aspect-[4/3] overflow-hidden' },
+													h('img', {
+														src: resolveImage(img.image),
+														alt: img.alt || '',
+														className: 'h-full w-full object-cover'
+													})
+												)
+											)
+										);
+									})
+								)
+							),
+							h(
+								'button',
+								{
+									type: 'button',
+									className: buttonBase + ' -start-12',
+									'data-embla-prev': carouselKey
+								},
+								'‹'
+							),
+							h(
+								'button',
+								{
+									type: 'button',
+									className: buttonBase + ' -end-12',
+									'data-embla-next': carouselKey
+								},
+								'›'
+							)
 						);
 					}
 
