@@ -40,6 +40,18 @@
       "type": "url",
       "label": "Accueil 3",
       "url": "/"
+    },
+    {
+      "type": "page",
+      "label": "Mentions légales",
+      "page": "mentions-legales",
+      "anchor": ""
+    },
+    {
+      "type": "page",
+      "label": "Politique de confidentialité",
+      "page": "politique-de-confidentialite",
+      "anchor": ""
     }
   ]
 }
