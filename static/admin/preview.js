@@ -165,7 +165,7 @@
 				'div',
 				{
 					className:
-						'mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4'
+						'mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-4 py-4'
 				},
 				h(
 					'a',
@@ -193,7 +193,7 @@
 				'div',
 				{
 					className:
-						'mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between'
+						'mx-auto flex max-w-4xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between'
 				},
 				// Same fallback as Footer.svelte: footerText, or the site name.
 				h('p', {}, footerText || siteName || ''),
@@ -558,7 +558,7 @@
 				'div',
 				{},
 				renderSiteHeader(this.state.siteName, this.state.navLinks),
-				h('article', { className: 'mx-auto max-w-3xl px-4 py-12' }, children),
+				h('article', { className: 'mx-auto max-w-4xl px-4 py-12' }, children),
 				renderSiteFooter(this.state.footerText, this.state.footerLinks, this.state.siteName)
 			);
 		}
@@ -610,7 +610,7 @@
 				'div',
 				{},
 				renderSiteHeader(this.state.siteName, this.state.navLinks),
-				h('article', { className: 'mx-auto max-w-3xl px-4 py-12' }, children),
+				h('article', { className: 'mx-auto max-w-4xl px-4 py-12' }, children),
 				renderSiteFooter(this.state.footerText, this.state.footerLinks, this.state.siteName)
 			);
 		}
@@ -655,7 +655,7 @@
 				renderSiteHeader(this.state.siteName, this.state.navLinks),
 				h(
 					'div',
-					{ className: 'mx-auto max-w-3xl px-4 py-12 flex flex-col gap-10' },
+					{ className: 'mx-auto max-w-4xl px-4 py-12 flex flex-col gap-10' },
 					renderBlocks(blocks, getAsset)
 				),
 				renderSiteFooter(this.state.footerText, this.state.footerLinks, this.state.siteName)

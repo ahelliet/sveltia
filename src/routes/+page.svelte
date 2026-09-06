@@ -24,11 +24,11 @@
 />
 
 {#if data.home.blocks.length > 0}
-	<div class="mx-auto max-w-3xl px-4 py-12">
+	<div class="mx-auto max-w-4xl px-4 py-12">
 		<Blocks blocks={data.home.blocks} />
 	</div>
 {:else}
-	<section class="mx-auto max-w-3xl px-4 py-16">
+	<section class="mx-auto max-w-4xl px-4 py-16">
 		<h1 class="text-4xl font-bold tracking-tight">{settings.siteName}</h1>
 		{#if settings.siteDescription}
 			<p class="mt-4 text-lg text-muted-foreground">{settings.siteDescription}</p>

@@ -15,7 +15,7 @@
 	<title>Erreur {page.status}</title>
 </svelte:head>
 
-<section class="mx-auto flex max-w-3xl flex-col items-center px-4 py-24 text-center">
+<section class="mx-auto flex max-w-4xl flex-col items-center px-4 py-24 text-center">
 	<p class="text-sm font-medium text-muted-foreground">Erreur {page.status}</p>
 	<h1 class="mt-2 text-3xl font-bold tracking-tight">
 		{page.status === 404 ? 'Page introuvable' : 'Une erreur est survenue'}

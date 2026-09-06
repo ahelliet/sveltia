@@ -36,7 +36,7 @@
 	{@html `<script type="application/ld+json">${ldJsonScript(articleStructuredData)}<\/script>`}
 </svelte:head>
 
-<article class="mx-auto max-w-3xl px-4 py-12">
+<article class="mx-auto max-w-4xl px-4 py-12">
 	<h1 class="text-3xl font-bold tracking-tight">{data.post.title}</h1>
 	<p class="mt-2 text-sm text-muted-foreground">
 		{new Date(data.post.date).toLocaleDateString('fr-FR')}
