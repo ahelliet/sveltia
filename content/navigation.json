@@ -10,5 +10,10 @@
     }
   ],
   "footerText": "",
-  "footerLinks": []
+  "footerLinks": [
+    {
+      "label": "Accueil",
+      "url": "/"
+    }
+  ]
 }
