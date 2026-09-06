@@ -47,6 +47,12 @@ Pour ajouter un nouveau type de bloc :
 
 L'article `content/posts/hello-world.md` contient un exemple de chaque type pour voir le rendu tout de suite (`pnpm dev` puis `/blog/hello-world`).
 
+### Aperçu réaliste dans l'admin
+
+Par défaut, l'aperçu de Sveltia CMS affiche les blocs de façon brute (markdown non rendu, pas de mise en page). `static/admin/preview.js` et `static/admin/preview.css` remplacent cet aperçu par un rendu qui reproduit `src/lib/components/Blocks.svelte` (via `CMS.registerPreviewTemplate`/`registerPreviewStyle`, les API de personnalisation de Sveltia CMS). Comme l'admin n'a pas de build step, ce script utilise les globals `h()`/`createClass()` exposés par Sveltia CMS (pas de JSX) et charge `marked` par CDN pour rendre le markdown des blocs.
+
+Si tu ajoutes un nouveau type de bloc ou changes le style dans `Blocks.svelte`, pense à répercuter le changement dans `preview.js`/`preview.css` — les deux ne partagent pas de code (l'un tourne dans SvelteKit, l'autre dans l'admin chargé par CDN).
+
 ## Déploiement
 
 Fonctionne sur n'importe quel hébergeur statique. Exemple Netlify :
