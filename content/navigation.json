@@ -1,34 +1,19 @@
 {
   "navLinks": [
     {
-      "type": "url",
-      "label": "Accueil 2",
-      "url": "/"
-    },
-    {
-      "type": "url",
-      "label": "Blog",
-      "url": "/blog"
-    },
-    {
-      "type": "page",
-      "label": "A propos",
-      "page": "a-propos",
-      "anchor": ""
-    },
-    {
       "type": "dropdown",
-      "label": "Ressources",
+      "label": "Menu",
       "links": [
         {
-          "type": "url",
-          "label": "Blog",
-          "url": "/blog"
+          "type": "page",
+          "label": "Mentions légales",
+          "page": "mentions-legales",
+          "anchor": ""
         },
         {
           "type": "page",
-          "label": "A propos",
-          "page": "a-propos",
+          "label": "Politique de confidentialité",
+          "page": "politique-de-confidentialite",
           "anchor": ""
         }
       ]
@@ -36,11 +21,6 @@
   ],
   "footerText": "",
   "footerLinks": [
-    {
-      "type": "url",
-      "label": "Accueil 3",
-      "url": "/"
-    },
     {
       "type": "page",
       "label": "Mentions légales",
