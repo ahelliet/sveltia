@@ -15,6 +15,23 @@
       "label": "A propos",
       "page": "a-propos",
       "anchor": ""
+    },
+    {
+      "type": "dropdown",
+      "label": "Ressources",
+      "links": [
+        {
+          "type": "url",
+          "label": "Blog",
+          "url": "/blog"
+        },
+        {
+          "type": "page",
+          "label": "A propos",
+          "page": "a-propos",
+          "anchor": ""
+        }
+      ]
     }
   ],
   "footerText": "",
