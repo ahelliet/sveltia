@@ -1,6 +1,6 @@
 {
-	"siteName": "Sveltia",
-	"siteDescription": "Exemple de site SvelteKit édité avec Sveltia CMS.",
-	"defaultImage": "",
-	"contactEmail": ""
+  "siteName": "Sveltia Demo",
+  "siteDescription": "",
+  "defaultImage": "",
+  "contactEmail": ""
 }
