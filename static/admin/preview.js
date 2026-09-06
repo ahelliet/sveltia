@@ -58,13 +58,18 @@
 	}
 
 	// Same link resolution as resolveLinkHref() in src/lib/site.ts: a nav
-	// link points at a CMS page, a blog article, or a free-typed URL
-	// depending on linkType — mirrored here (plain JS, no shared import
-	// possible since this file has no bundler) so the preview never shows a
-	// different link than the real site would produce for the same data.
+	// link points at a CMS page, a blog article, an anchor on the current
+	// page, or a free-typed URL depending on `type` (the list-with-types
+	// discriminator, see &navLinkTypes in config.yml) — mirrored here (plain
+	// JS, no shared import possible since this file has no bundler) so the
+	// preview never shows a different link than the real site would produce
+	// for the same data.
 	function resolveLinkHref(link) {
-		if (link.linkType === 'page' && link.page) return '/' + link.page;
-		if (link.linkType === 'post' && link.post) return '/blog/' + link.post;
+		var anchor = link.anchor ? '#' + link.anchor : '';
+
+		if (link.type === 'page' && link.page) return '/' + link.page + anchor;
+		if (link.type === 'post' && link.post) return '/blog/' + link.post + anchor;
+		if (link.type === 'anchor' && link.anchor) return '#' + link.anchor;
 		return link.url || '#';
 	}
 

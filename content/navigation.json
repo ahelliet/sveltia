@@ -1,21 +1,21 @@
 {
   "navLinks": [
     {
+      "type": "url",
       "label": "Accueil 2",
-      "linkType": "url",
       "url": "/"
     },
     {
+      "type": "url",
       "label": "Blog",
-      "linkType": "url",
       "url": "/blog"
     }
   ],
   "footerText": "",
   "footerLinks": [
     {
+      "type": "url",
       "label": "Accueil 3",
-      "linkType": "url",
       "url": "/"
     }
   ]

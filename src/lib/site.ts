@@ -4,15 +4,16 @@ import settingsDataRaw from '../../content/settings.json';
 // The imports above get their TypeScript type from the literal JSON files
 // on disk (Vite/TS infer the shape from what's actually there), which
 // would break the moment a field is missing from content/*.json (e.g. a
-// nav link written before "linkType" existed, or a fresh settings.json
-// without "seo" yet). Casting to a loose shape here — instead of relying
-// on that inferred type — means the parsing below is the single source of
-// truth for what's optional, not the current contents of the file.
+// nav link written before "type" existed, or a fresh settings.json without
+// "seo" yet). Casting to a loose shape here — instead of relying on that
+// inferred type — means the parsing below is the single source of truth
+// for what's optional, not the current contents of the file.
 type RawNavLink = {
+	type?: string;
 	label?: string;
-	linkType?: string;
 	page?: string;
 	post?: string;
+	anchor?: string;
 	url?: string;
 };
 
@@ -47,16 +48,20 @@ type RawSettings = {
 const navigationData = navigationDataRaw as RawNavigation;
 const settingsData = settingsDataRaw as RawSettings;
 
-// A nav/footer link points at one of three things depending on `linkType`:
-// a CMS "Pages" entry, a blog article, or a free-typed URL (also how
-// existing links written before `linkType` existed still work — see
-// resolveLinkHref below). `page`/`post` store just the slug (Sveltia's
-// relation widget with `value_field: "{{slug}}"`, see config.yml).
+// A nav/footer link points at one of four things depending on `type` (the
+// list-with-types widget's discriminator field — see the &navLinkTypes
+// anchor in config.yml, same idea as the &blockTypes page builder): a CMS
+// "Pages" entry, a blog article, an anchor on the current page, or a
+// free-typed URL. `page`/`post` store just the slug (Sveltia's relation
+// widget with `value_field: "{{slug}}"`). `anchor` is optional on
+// page/post links (jumps to a section of that page) and required on
+// "anchor" links (jumps to a section of the current page).
 export type NavLink = {
+	type?: 'page' | 'post' | 'anchor' | 'url';
 	label: string;
-	linkType?: 'page' | 'post' | 'url';
 	page?: string;
 	post?: string;
+	anchor?: string;
 	url?: string;
 };
 
@@ -89,7 +94,7 @@ export type Settings = {
 };
 
 // Read at build time (same principle as src/lib/posts.ts): these come from
-// the CMS's "Navigation" and "Paramètres globaux" file collections
+// the CMS's "Navigation" and "Paramètres globaux" singletons
 // (content/navigation.json, content/settings.json), and Vite bundles a
 // plain `import` of a .json file as a parsed object with no extra work.
 export const navigation: Navigation = {
@@ -123,7 +128,10 @@ export const settings: Settings = {
 // stays consistent with the real header/footer — if you change this,
 // change that too.
 export function resolveLinkHref(link: NavLink): string {
-	if (link.linkType === 'page' && link.page) return `/${link.page}`;
-	if (link.linkType === 'post' && link.post) return `/blog/${link.post}`;
+	const anchor = link.anchor ? `#${link.anchor}` : '';
+
+	if (link.type === 'page' && link.page) return `/${link.page}${anchor}`;
+	if (link.type === 'post' && link.post) return `/blog/${link.post}${anchor}`;
+	if (link.type === 'anchor' && link.anchor) return `#${link.anchor}`;
 	return link.url || '#';
 }

@@ -202,29 +202,33 @@ collections:
         collapsed: true
         fields: *seoFields
 
+# "Navigation" et "Paramètres globaux" en singletons plutôt qu'en
+# collections de type "files" : un clic dans le menu de gauche ouvre
+# directement le formulaire (+ aperçu pour "Navigation"), sans passer par un
+# écran intermédiaire listant "le" seul fichier de la collection — cet écran
+# n'avait aucune utilité ici puisqu'il n'y a jamais qu'un seul fichier par
+# collection "files". Voir https://sveltiacms.app/en/docs/collections/singletons
+singletons:
   - name: "navigation"
     label: "Navigation"
-    files:
-      - name: "navigation"
-        label: "Navigation"
-        file: "content/navigation.json"
-        fields:
-          - label: "Liens du menu"
-            name: "navLinks"
-            widget: "list"
-            # &navLinkFields : mêmes champs réutilisés par "Liens du pied de
-            # page" ci-dessous (ancre YAML).
-            fields: &navLinkFields
+    file: "content/navigation.json"
+    fields:
+      - label: "Liens du menu"
+        name: "navLinks"
+        widget: "list"
+        # &navLinkTypes : chaque lien choisit UN type ci-dessous (Page /
+        # Article / Ancre / URL) et n'affiche que les champs utiles à ce
+        # type-là — plus clair qu'un champ "type de lien" suivi de 3 champs
+        # optionnels tous visibles en même temps, quel que soit le type
+        # choisi. Réutilisé tel quel par "Liens du pied de page" ci-dessous
+        # (ancre YAML).
+        types: &navLinkTypes
+          - label: "Page du site"
+            name: "page"
+            widget: "object"
+            summary: "{{fields.label}} → page : {{fields.page}}"
+            fields:
               - { label: "Libellé", name: "label", widget: "string" }
-              - label: "Type de lien"
-                name: "linkType"
-                widget: "select"
-                options:
-                  - { label: "Page", value: "page" }
-                  - { label: "Article de blog", value: "post" }
-                  - { label: "URL personnalisée", value: "url" }
-                default: "url"
-                hint: "Détermine quel champ ci-dessous est utilisé."
               - label: "Page liée"
                 name: "page"
                 widget: "relation"
@@ -232,8 +236,19 @@ collections:
                 search_fields: ["title"]
                 value_field: "{{slug}}"
                 display_fields: ["title"]
+              - label: "Ancre (optionnel)"
+                name: "anchor"
+                widget: "string"
                 required: false
-                hint: "Utilisé si le type de lien ci-dessus est « Page »."
+                hint: >-
+                  Fait défiler jusqu'à l'élément portant cet identifiant sur
+                  la page, sans le # (ex : contact).
+          - label: "Article de blog"
+            name: "post"
+            widget: "object"
+            summary: "{{fields.label}} → article : {{fields.post}}"
+            fields:
+              - { label: "Libellé", name: "label", widget: "string" }
               - label: "Article lié"
                 name: "post"
                 widget: "relation"
@@ -241,122 +256,139 @@ collections:
                 search_fields: ["title"]
                 value_field: "{{slug}}"
                 display_fields: ["title"]
-                required: false
-                hint: "Utilisé si le type de lien ci-dessus est « Article de blog »."
-              - label: "URL personnalisée"
-                name: "url"
+              - label: "Ancre (optionnel)"
+                name: "anchor"
                 widget: "string"
                 required: false
+                hint: "Sans le # (ex : commentaires)."
+          - label: "Ancre sur cette page"
+            name: "anchor"
+            widget: "object"
+            summary: "{{fields.label}} → #{{fields.anchor}}"
+            fields:
+              - { label: "Libellé", name: "label", widget: "string" }
+              - label: "Ancre"
+                name: "anchor"
+                widget: "string"
                 hint: >-
-                  Utilisé si le type de lien ci-dessus est « URL
-                  personnalisée » (ex : /blog, /, https://...).
-          - label: "Texte du pied de page"
-            name: "footerText"
-            widget: "string"
-            required: false
-          - label: "Liens du pied de page"
-            name: "footerLinks"
-            widget: "list"
-            required: false
-            fields: *navLinkFields
+                  Identifiant de la section vers laquelle défiler, sans le #
+                  (ex : contact). Le lien reste sur la page en cours —
+                  pratique pour un menu qui pointe vers une section plus bas
+                  sur la même page.
+          - label: "URL personnalisée"
+            name: "url"
+            widget: "object"
+            summary: "{{fields.label}} → {{fields.url}}"
+            fields:
+              - { label: "Libellé", name: "label", widget: "string" }
+              - label: "URL"
+                name: "url"
+                widget: "string"
+                hint: "Ex : https://..., /mentions-legales, #ancre..."
+      - label: "Texte du pied de page"
+        name: "footerText"
+        widget: "string"
+        required: false
+      - label: "Liens du pied de page"
+        name: "footerLinks"
+        widget: "list"
+        required: false
+        types: *navLinkTypes
 
   - name: "settings"
     label: "Paramètres globaux"
     editor:
       preview: false # données informatives (nom du site, SEO...), pas de rendu visuel à prévisualiser
-    files:
-      - name: "settings"
-        label: "Paramètres globaux"
-        file: "content/settings.json"
+    file: "content/settings.json"
+    fields:
+      - { label: "Nom du site", name: "siteName", widget: "string" }
+      - label: "Description du site"
+        name: "siteDescription"
+        widget: "text"
+        required: false
+        pattern: ["^.{0,155}$", "155 caractères maximum (au-delà, Google tronque la description)."]
+        hint: "Sert aussi de description meta (SEO) par défaut."
+      - label: "Favicon"
+        name: "favicon"
+        widget: "image"
+        required: false
+        hint: "Icône affichée dans l'onglet du navigateur. SVG, PNG ou ICO. Si vide, garde l'icône par défaut du projet."
+      - label: "Image par défaut (partage social)"
+        name: "defaultImage"
+        widget: "image"
+        required: false
+        hint: "Utilisée comme image Open Graph / Twitter par défaut quand une page n'en définit pas."
+      - label: "Email de contact"
+        name: "contactEmail"
+        widget: "string"
+        required: false
+        pattern:
+          [
+            "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "Merci de saisir une adresse email valide (ex : contact@mon-site.fr).",
+          ]
+      - label: "Référencement (SEO & GEO)"
+        name: "seo"
+        widget: "object"
+        required: false
+        collapsed: true
+        hint: >-
+          GEO = Generative Engine Optimization : ce qui aide aussi les
+          moteurs de réponse par IA (résumés, citations) à bien comprendre
+          et citer le site, en plus du SEO classique.
         fields:
-          - { label: "Nom du site", name: "siteName", widget: "string" }
-          - label: "Description du site"
-            name: "siteDescription"
-            widget: "text"
-            required: false
-            pattern: ["^.{0,155}$", "155 caractères maximum (au-delà, Google tronque la description)."]
-            hint: "Sert aussi de description meta (SEO) par défaut."
-          - label: "Favicon"
-            name: "favicon"
-            widget: "image"
-            required: false
-            hint: "Icône affichée dans l'onglet du navigateur. SVG, PNG ou ICO. Si vide, garde l'icône par défaut du projet."
-          - label: "Image par défaut (partage social)"
-            name: "defaultImage"
-            widget: "image"
-            required: false
-            hint: "Utilisée comme image Open Graph / Twitter par défaut quand une page n'en définit pas."
-          - label: "Email de contact"
-            name: "contactEmail"
+          - label: "URL du site (production)"
+            name: "siteUrl"
             widget: "string"
             required: false
-            pattern:
-              [
-                "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                "Merci de saisir une adresse email valide (ex : contact@mon-site.fr).",
-              ]
-          - label: "Référencement (SEO & GEO)"
-            name: "seo"
-            widget: "object"
-            required: false
-            collapsed: true
             hint: >-
-              GEO = Generative Engine Optimization : ce qui aide aussi les
-              moteurs de réponse par IA (résumés, citations) à bien
-              comprendre et citer le site, en plus du SEO classique.
-            fields:
-              - label: "URL du site (production)"
-                name: "siteUrl"
-                widget: "string"
-                required: false
-                hint: >-
-                  Ex : https://mon-site.fr — nécessaire pour générer des URLs
-                  absolues (Open Graph, sitemap, robots.txt, flux RSS).
-              - label: "Modèle de titre"
-                name: "titleTemplate"
-                widget: "string"
-                required: false
-                default: "%s · %s"
-                hint: >-
-                  %s sera remplacé par le titre de la page puis par le nom du
-                  site (ex : "Contact · Mon Site").
-              - label: "Langue / locale"
-                name: "locale"
-                widget: "string"
-                required: false
-                default: "fr_FR"
-                hint: "Ex : fr_FR — utilisé pour l'attribut lang et og:locale."
-              - label: "Autoriser l'indexation par les moteurs"
-                name: "robotsIndexing"
-                widget: "boolean"
-                default: true
-                required: false
-                hint: "Désactive globalement l'indexation (robots.txt) — utile en pré-production."
-              - label: "Compte X / Twitter (@identifiant)"
-                name: "twitterHandle"
-                widget: "string"
-                required: false
-              - label: "Type de carte X / Twitter"
-                name: "twitterCardType"
-                widget: "select"
-                options: ["summary", "summary_large_image"]
-                default: "summary_large_image"
-                required: false
-              - label: "Nom de l'organisation (données structurées)"
-                name: "organizationName"
-                widget: "string"
-                required: false
-                hint: "Utilisé pour le schema.org Organization/WebSite (aide le SEO/GEO)."
-              - label: "Logo de l'organisation (données structurées)"
-                name: "organizationLogo"
-                widget: "image"
-                required: false
-              - label: "Réseaux sociaux (schema.org sameAs)"
-                name: "sameAs"
-                widget: "list"
-                required: false
-                hint: "Une URL par ligne (LinkedIn, X, Instagram...)."
-              - label: "Code de vérification Google Search Console"
-                name: "googleSiteVerification"
-                widget: "string"
-                required: false
+              Ex : https://mon-site.fr — nécessaire pour générer des URLs
+              absolues (Open Graph, sitemap, robots.txt, flux RSS).
+          - label: "Modèle de titre"
+            name: "titleTemplate"
+            widget: "string"
+            required: false
+            default: "%s · %s"
+            hint: >-
+              %s sera remplacé par le titre de la page puis par le nom du
+              site (ex : "Contact · Mon Site").
+          - label: "Langue / locale"
+            name: "locale"
+            widget: "string"
+            required: false
+            default: "fr_FR"
+            hint: "Ex : fr_FR — utilisé pour l'attribut lang et og:locale."
+          - label: "Autoriser l'indexation par les moteurs"
+            name: "robotsIndexing"
+            widget: "boolean"
+            default: true
+            required: false
+            hint: "Désactive globalement l'indexation (robots.txt) — utile en pré-production."
+          - label: "Compte X / Twitter (@identifiant)"
+            name: "twitterHandle"
+            widget: "string"
+            required: false
+          - label: "Type de carte X / Twitter"
+            name: "twitterCardType"
+            widget: "select"
+            options: ["summary", "summary_large_image"]
+            default: "summary_large_image"
+            required: false
+          - label: "Nom de l'organisation (données structurées)"
+            name: "organizationName"
+            widget: "string"
+            required: false
+            hint: "Utilisé pour le schema.org Organization/WebSite (aide le SEO/GEO)."
+          - label: "Logo de l'organisation (données structurées)"
+            name: "organizationLogo"
+            widget: "image"
+            required: false
+          - label: "Réseaux sociaux (schema.org sameAs)"
+            name: "sameAs"
+            widget: "list"
+            required: false
+            hint: "Une URL par ligne (LinkedIn, X, Instagram...)."
+          - label: "Code de vérification Google Search Console"
+            name: "googleSiteVerification"
+            widget: "string"
+            required: false
