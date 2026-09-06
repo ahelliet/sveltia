@@ -5,7 +5,7 @@
   "defaultImage": "",
   "contactEmail": "",
   "seo": {
-    "siteUrl": "",
+    "siteUrl": "http://localhost:5173",
     "titleTemplate": "%s · %s",
     "locale": "fr_FR",
     "robotsIndexing": true,
