@@ -480,35 +480,67 @@
 			var data = toPlain(entry.get('data')) || {};
 			var blocks = Array.isArray(data.blocks) ? data.blocks : [];
 
-			// Même règle que PageContent.svelte : pas de <h1> répétant le titre
-			// sur la page d'accueil (redondant), et pas de marge au-dessus des
-			// blocs dans ce cas.
-			var children = data.isHomePage
-				? [
-						h(
-							'div',
-							{ key: 'blocks', className: 'flex flex-col gap-10' },
-							renderBlocks(blocks, getAsset)
-						)
-					]
-				: [
-						h(
-							'h1',
-							{ key: 'title', className: 'text-3xl font-bold tracking-tight' },
-							data.title || ''
-						),
-						h(
-							'div',
-							{ key: 'blocks', className: 'mt-8 flex flex-col gap-10' },
-							renderBlocks(blocks, getAsset)
-						)
-					];
+			var children = [
+				h('h1', { key: 'title', className: 'text-3xl font-bold tracking-tight' }, data.title || ''),
+				h(
+					'div',
+					{ key: 'blocks', className: 'mt-8 flex flex-col gap-10' },
+					renderBlocks(blocks, getAsset)
+				)
+			];
 
 			return h(
 				'div',
 				{},
 				renderSiteHeader(this.state.siteName, this.state.navLinks),
 				h('article', { className: 'mx-auto max-w-3xl px-4 py-12' }, children),
+				renderSiteFooter(this.state.footerText, this.state.footerLinks, this.state.siteName)
+			);
+		}
+	});
+
+	// Preview for the "home" singleton (content/home.md) — same chrome as
+	// PostPreview/PagePreview, but no <h1>/title at all: the homepage
+	// doesn't show one (see src/routes/+page.svelte, PageContent.svelte).
+	var HomePreview = createClass({
+		getInitialState: function () {
+			return { siteName: '', navLinks: [], footerText: '', footerLinks: [] };
+		},
+
+		componentDidMount: function () {
+			var self = this;
+
+			fetchSiteChrome(this.props.getCollection).then(function (chrome) {
+				self.setState(chrome);
+			});
+
+			this._emblaApis = initCarousels(this.props.document || document);
+		},
+
+		componentDidUpdate: function () {
+			destroyCarousels(this._emblaApis);
+			this._emblaApis = initCarousels(this.props.document || document);
+		},
+
+		componentWillUnmount: function () {
+			destroyCarousels(this._emblaApis);
+		},
+
+		render: function () {
+			var entry = this.props.entry;
+			var getAsset = this.props.getAsset;
+			var data = toPlain(entry.get('data')) || {};
+			var blocks = Array.isArray(data.blocks) ? data.blocks : [];
+
+			return h(
+				'div',
+				{},
+				renderSiteHeader(this.state.siteName, this.state.navLinks),
+				h(
+					'div',
+					{ className: 'mx-auto max-w-3xl px-4 py-12 flex flex-col gap-10' },
+					renderBlocks(blocks, getAsset)
+				),
 				renderSiteFooter(this.state.footerText, this.state.footerLinks, this.state.siteName)
 			);
 		}
@@ -562,6 +594,7 @@
 	CMS.registerPreviewStyle('preview.css');
 	CMS.registerPreviewTemplate('posts', PostPreview);
 	CMS.registerPreviewTemplate('pages', PagePreview);
+	CMS.registerPreviewTemplate('home', HomePreview);
 	CMS.registerPreviewTemplate('navigation', NavigationPreview);
 
 	// Titre de l'admin ("Sveltia CMS" par défaut, affiché à côté du logo sur

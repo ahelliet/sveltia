@@ -176,20 +176,11 @@ collections:
     media_folder: "{{media_folder}}/pages"
     public_folder: "{{public_folder}}/pages"
     # Même principe que "posts" ci-dessus (src/routes/[slug]/+page.svelte).
-    # Pour la page marquée "Définir comme page d'accueil", ça pointe vers
-    # /<slug> plutôt que / — la page reste accessible aux deux URLs (voir le
-    # README, section "Pages (multipage)"), donc le lien reste valide.
+    # La page d'accueil ("/") est un singleton séparé (voir "home"
+    # ci-dessous), pas une entrée de cette collection.
     preview_path: "{{slug}}"
     fields:
       - { label: "Titre", name: "title", widget: "string" }
-      - label: "Définir comme page d'accueil"
-        name: "isHomePage"
-        widget: "boolean"
-        default: false
-        required: false
-        hint: >-
-          Si activé, cette page remplace le contenu de la page d'accueil
-          ("/"). Une seule page devrait avoir cette case cochée à la fois.
       - label: "Blocs de contenu (page builder)"
         name: "blocks"
         widget: "list"
@@ -202,13 +193,36 @@ collections:
         collapsed: true
         fields: *seoFields
 
-# "Navigation" et "Paramètres globaux" en singletons plutôt qu'en
-# collections de type "files" : un clic dans le menu de gauche ouvre
-# directement le formulaire (+ aperçu pour "Navigation"), sans passer par un
-# écran intermédiaire listant "le" seul fichier de la collection — cet écran
-# n'avait aucune utilité ici puisqu'il n'y a jamais qu'un seul fichier par
-# collection "files". Voir https://sveltiacms.app/en/docs/collections/singletons
+# "Page d'accueil", "Navigation" et "Paramètres globaux" en singletons
+# plutôt qu'en collections : un clic dans le menu de gauche ouvre
+# directement le formulaire (+ aperçu), sans passer par un écran
+# intermédiaire à choisir parmi une liste d'un seul élément. Voir
+# https://sveltiacms.app/en/docs/collections/singletons
 singletons:
+  - name: "home"
+    label: "Page d'accueil"
+    file: "content/home.md"
+    # "/" plutôt qu'un chemin construit à partir d'un champ — la page
+    # d'accueil n'a pas de slug, contrairement à "posts"/"pages".
+    preview_path: ""
+    fields:
+      - label: "Blocs de contenu (page builder)"
+        name: "blocks"
+        widget: "list"
+        required: false
+        types: *blockTypes
+      - label: "Référencement (SEO)"
+        name: "seo"
+        widget: "object"
+        required: false
+        collapsed: true
+        # Pas de champ "titre" ici (contrairement à "posts"/"pages") : la
+        # page d'accueil n'affiche pas de titre visible (voir
+        # PageContent.svelte / le README), donc metaTitle sert aussi de
+        # secours pour le <title> — sans lui, c'est le nom du site qui est
+        # utilisé (voir src/routes/+page.svelte).
+        fields: *seoFields
+
   - name: "navigation"
     label: "Navigation"
     file: "content/navigation.json"

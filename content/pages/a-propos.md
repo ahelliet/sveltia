@@ -1,6 +1,5 @@
 ---
 title: "À propos"
-isHomePage: false
 blocks:
   - type: text
     body: |

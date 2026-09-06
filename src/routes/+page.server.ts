@@ -1,10 +1,9 @@
-import { getHomePage } from '$lib/pages';
+import { home } from '$lib/home';
 import type { PageServerLoad } from './$types';
 
-// If an editor flags a CMS page as "page d'accueil" (Pages collection,
-// `isHomePage`), it replaces the hardcoded intro below at "/" — no route
-// change needed, the client just ticks the box on whichever page should be
-// the homepage.
+// content/home.md (the "home" singleton in the CMS) always drives "/" — no
+// flag or lookup needed, unlike the old "isHomePage" checkbox on a Pages
+// entry (see the README for why that approach was replaced).
 export const load: PageServerLoad = async () => {
-	return { homePage: getHomePage() };
+	return { home };
 };

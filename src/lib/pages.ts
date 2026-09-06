@@ -8,7 +8,6 @@ export type { Block } from './blocks';
 export type Page = {
 	slug: string;
 	title: string;
-	isHomePage: boolean;
 	blocks: Block[];
 	seo: Seo;
 };
@@ -19,7 +18,9 @@ export type Page = {
 // SvelteKit routing at all. Both would silently either 404 or be
 // unreachable if a page used one of these slugs, so such pages are
 // filtered out here (with a build-time warning) instead of only being
-// documented as "please don't do this" in the CMS.
+// documented as "please don't do this" in the CMS. The homepage ("/") is a
+// separate singleton (content/home.md, src/lib/home.ts), not a slug here,
+// so there's no "home"/"" entry to reserve.
 const RESERVED_SLUGS = new Set(['blog', 'admin']);
 
 // Content lives at the repo root (`content/pages/*.md`), matching Sveltia
@@ -38,7 +39,6 @@ function parsePage(path: string, raw: string): Page {
 	return {
 		slug,
 		title: data.title ?? slug,
-		isHomePage: Boolean(data.isHomePage),
 		blocks: parseBlocks(data.blocks, marked),
 		seo: parseSeo(data.seo)
 	};
@@ -63,11 +63,4 @@ export function getAllPages(): Page[] {
 
 export function getPageBySlug(slug: string): Page | undefined {
 	return pages.find((page) => page.slug === slug);
-}
-
-// At most one page should be flagged "page d'accueil" in the CMS; if an
-// editor flags several by mistake, the first one wins (deterministic, and
-// avoids the home route rendering nothing).
-export function getHomePage(): Page | undefined {
-	return pages.find((page) => page.isHomePage);
 }
