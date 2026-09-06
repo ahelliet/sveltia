@@ -8,6 +8,7 @@ export type ImageBlock = { type: 'image'; image: string; caption?: string; alt?:
 export type ImageTextBlock = {
 	type: 'image_text';
 	image: string;
+	alt?: string;
 	html: string;
 	imageOnRight: boolean;
 };
@@ -43,6 +44,7 @@ export function parseBlocks(raw: unknown, marked: { parse: (s: string, o: { asyn
 					return {
 						type: 'image_text',
 						image: String(block.image ?? ''),
+						alt: block.alt as string | undefined,
 						html: marked.parse(String(block.body ?? ''), { async: false }),
 						imageOnRight: Boolean(block.imageOnRight)
 					};

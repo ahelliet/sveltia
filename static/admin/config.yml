@@ -44,8 +44,19 @@ collections:
     public_folder: "{{public_folder}}/posts"
     fields:
       - { label: "Titre", name: "title", widget: "string" }
-      - { label: "Date de publication", name: "date", widget: "datetime" }
-      - { label: "Résumé", name: "excerpt", widget: "text", required: false }
+      - label: "Date de publication"
+        name: "date"
+        widget: "datetime"
+        default: "{{now}}"
+      - label: "Résumé"
+        name: "excerpt"
+        widget: "text"
+        required: false
+        pattern:
+          [
+            "^.{0,200}$",
+            "200 caractères maximum — c'est l'accroche affichée dans la liste des articles.",
+          ]
       - { label: "Image principale", name: "heroImage", widget: "image", required: false }
       - label: "Texte alternatif de l'image principale"
         name: "heroImageAlt"
@@ -77,6 +88,7 @@ collections:
             widget: "object"
             fields:
               - { label: "Image", name: "image", widget: "image" }
+              - { label: "Texte alternatif", name: "alt", widget: "string", required: false }
               - { label: "Texte", name: "body", widget: "markdown" }
               - { label: "Image à droite", name: "imageOnRight", widget: "boolean", default: false }
           - label: "Citation"

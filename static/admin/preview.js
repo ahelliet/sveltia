@@ -204,6 +204,7 @@
 							h('img', {
 								src: resolveImage(block.image),
 								alt: block.alt || '',
+								loading: 'lazy',
 								className: 'h-full w-full object-cover'
 							})
 						),
@@ -230,7 +231,8 @@
 							},
 							h('img', {
 								src: resolveImage(block.image),
-								alt: '',
+								alt: block.alt || '',
+								loading: 'lazy',
 								className: 'h-full w-full object-cover'
 							})
 						),
@@ -284,6 +286,7 @@
 												h('img', {
 													src: resolveImage(img.image),
 													alt: img.alt || '',
+													loading: 'lazy',
 													className: 'h-full w-full object-cover'
 												})
 											)

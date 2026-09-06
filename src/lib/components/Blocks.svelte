@@ -23,7 +23,12 @@
 		{:else if block.type === 'image'}
 			<figure>
 				<AspectRatio ratio={16 / 9} class="overflow-hidden rounded-2xl bg-muted">
-					<img src={block.image} alt={block.alt ?? ''} class="h-full w-full object-cover" />
+					<img
+						src={block.image}
+						alt={block.alt ?? ''}
+						loading="lazy"
+						class="h-full w-full object-cover"
+					/>
 				</AspectRatio>
 				{#if block.caption}
 					<figcaption class="mt-2 text-center text-sm text-muted-foreground">
@@ -37,7 +42,12 @@
 					ratio={4 / 3}
 					class="overflow-hidden rounded-2xl bg-muted {block.imageOnRight ? 'md:order-2' : ''}"
 				>
-					<img src={block.image} alt="" class="h-full w-full object-cover" />
+					<img
+						src={block.image}
+						alt={block.alt ?? ''}
+						loading="lazy"
+						class="h-full w-full object-cover"
+					/>
 				</AspectRatio>
 				<div class="prose dark:prose-invert max-w-none">
 					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -64,6 +74,7 @@
 										<img
 											src={img.image}
 											alt={img.alt ?? ''}
+											loading="lazy"
 											class="h-full w-full object-cover"
 										/>
 									</AspectRatio>
