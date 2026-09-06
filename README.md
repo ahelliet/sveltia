@@ -37,7 +37,7 @@ backend:
 
 ## Page builder (blocs de contenu)
 
-En plus du champ `body` (markdown libre), la collection `posts` a un champ `blocks` (`widget: list` avec `types`) qui permet d'empiler des blocs réordonnables dans l'admin : **Texte**, **Image**, **Image + Texte**, **Citation**, **Galerie**. Chaque type est défini dans `static/admin/config.yml`, et rendu côté site par `src/lib/components/Blocks.svelte` à partir des données typées dans `src/lib/posts.ts` (type `Block`).
+Tout le contenu d'un article passe par le champ `blocks` (`widget: list` avec `types`), qui permet d'empiler des blocs réordonnables dans l'admin : **Texte** (markdown libre, pour remplacer un simple paragraphe), **Image**, **Image + Texte**, **Citation**, **Galerie**. Il n'y a volontairement pas de champ "Contenu" séparé : ça évite d'avoir deux endroits différents où écrire du texte. Chaque type est défini dans `static/admin/config.yml`, et rendu côté site par `src/lib/components/Blocks.svelte` à partir des données typées dans `src/lib/posts.ts` (type `Block`).
 
 Pour ajouter un nouveau type de bloc :
 

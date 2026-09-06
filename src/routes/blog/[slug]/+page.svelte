@@ -15,8 +15,6 @@
 	{#if data.post.heroImage}
 		<img src={data.post.heroImage} alt={data.post.title} />
 	{/if}
-	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-	{@html data.post.html}
 
 	<Blocks blocks={data.post.blocks} />
 </article>

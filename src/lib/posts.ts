@@ -20,7 +20,6 @@ export type Post = {
 	date: string;
 	excerpt?: string;
 	heroImage?: string;
-	html: string;
 	blocks: Block[];
 };
 
@@ -89,14 +88,13 @@ function parseBlocks(raw: unknown): Block[] {
 
 function parsePost(path: string, raw: string): Post {
 	const slug = path.split('/').pop()!.replace(/\.md$/, '');
-	const { data, content } = matter(raw);
+	const { data } = matter(raw);
 	return {
 		slug,
 		title: data.title ?? slug,
 		date: data.date ? new Date(data.date).toISOString() : new Date(0).toISOString(),
 		excerpt: data.excerpt,
 		heroImage: data.heroImage,
-		html: marked.parse(content, { async: false }) as string,
 		blocks: parseBlocks(data.blocks)
 	};
 }
