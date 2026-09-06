@@ -9,6 +9,18 @@ backend:
   # renseigne l'URL une fois le worker déployé (voir README) :
   # base_url: https://ton-worker.workers.dev
 
+# Workflow éditorial : chaque nouvelle entrée / modification part sur sa
+# propre branche ("cms/<collection>/<slug>") avec une pull request GitHub
+# associée, au lieu de partir directement sur "main" à chaque sauvegarde.
+# Une entrée passe par 3 statuts (Brouillon -> En révision -> Prêt à
+# publier), affichés comme des colonnes dans l'admin (bouton "Workflow" en
+# haut) ; "Publier" fusionne la pull request, "Supprimer" la ferme. Permet
+# de préparer/relire un contenu avant qu'il soit vraiment en ligne, et à
+# plusieurs éditeurs de se relire mutuellement avant publication. Nécessite
+# le backend GitHub (déjà le cas ici) — voir
+# https://sveltiacms.app/en/docs/workflows/editorial
+publish_mode: editorial_workflow
+
 # Interface d'administration en français (éditeurs francophones) plutôt que
 # l'anglais par défaut.
 locale: "fr"
