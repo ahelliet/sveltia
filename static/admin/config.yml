@@ -236,6 +236,12 @@ singletons:
                 search_fields: ["title"]
                 value_field: "{{slug}}"
                 display_fields: ["title"]
+                # Toujours un menu déroulant avec recherche plutôt que des
+                # boutons radio (le rendu par défaut de Sveltia CMS tant
+                # qu'il y a peu d'entrées — moins de "dropdown_threshold",
+                # 5 par défaut — d'où l'aspect "case à cocher" avec 1 ou 2
+                # pages seulement).
+                dropdown_threshold: 0
               - label: "Ancre (optionnel)"
                 name: "anchor"
                 widget: "string"
@@ -256,6 +262,8 @@ singletons:
                 search_fields: ["title"]
                 value_field: "{{slug}}"
                 display_fields: ["title"]
+                # Même raison que "Page liée" ci-dessus.
+                dropdown_threshold: 0
               - label: "Ancre (optionnel)"
                 name: "anchor"
                 widget: "string"
