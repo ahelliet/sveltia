@@ -27,7 +27,10 @@ collections:
         name: "blocks"
         widget: "list"
         required: false
-        types:
+        # &blockTypes : les mêmes blocs sont réutilisés tels quels par la
+        # collection "pages" ci-dessous (ancre YAML), pour ne définir ces
+        # types qu'une seule fois.
+        types: &blockTypes
           - label: "Texte"
             name: "text"
             widget: "object"
@@ -64,6 +67,53 @@ collections:
                   - { label: "Image", name: "image", widget: "image" }
                   - { label: "Texte alternatif", name: "alt", widget: "string", required: false }
 
+  - name: "pages"
+    label: "Pages"
+    folder: "content/pages"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Titre", name: "title", widget: "string" }
+      - label: "Définir comme page d'accueil"
+        name: "isHomePage"
+        widget: "boolean"
+        default: false
+        required: false
+        hint: >-
+          Si activé, cette page remplace le contenu de la page d'accueil
+          ("/"). Une seule page devrait avoir cette case cochée à la fois.
+      - label: "Blocs de contenu (page builder)"
+        name: "blocks"
+        widget: "list"
+        required: false
+        types: *blockTypes
+      - label: "Référencement (SEO)"
+        name: "seo"
+        widget: "object"
+        required: false
+        collapsed: true
+        fields:
+          - label: "Titre meta (SEO)"
+            name: "metaTitle"
+            widget: "string"
+            required: false
+            hint: "Si vide, utilise le titre de la page ci-dessus."
+          - label: "Description meta (SEO)"
+            name: "metaDescription"
+            widget: "text"
+            required: false
+            hint: "Si vide, utilise la description par défaut des paramètres globaux."
+          - label: "Image de partage (Open Graph)"
+            name: "ogImage"
+            widget: "image"
+            required: false
+            hint: "Si vide, utilise l'image par défaut des paramètres globaux."
+          - label: "Ne pas indexer (noindex)"
+            name: "noIndex"
+            widget: "boolean"
+            default: false
+            required: false
+
   - name: "navigation"
     label: "Navigation"
     files:
@@ -92,7 +142,7 @@ collections:
   - name: "settings"
     label: "Paramètres globaux"
     editor:
-      preview: false # données informatives (nom du site, email...), pas de rendu visuel à prévisualiser
+      preview: false # données informatives (nom du site, SEO...), pas de rendu visuel à prévisualiser
     files:
       - name: "settings"
         label: "Paramètres globaux"
@@ -103,11 +153,78 @@ collections:
             name: "siteDescription"
             widget: "text"
             required: false
+            hint: "Sert aussi de description meta (SEO) par défaut."
           - label: "Image par défaut (partage social)"
             name: "defaultImage"
             widget: "image"
             required: false
+            hint: "Utilisée comme image Open Graph / Twitter par défaut quand une page n'en définit pas."
           - label: "Email de contact"
             name: "contactEmail"
             widget: "string"
             required: false
+          - label: "Référencement (SEO & GEO)"
+            name: "seo"
+            widget: "object"
+            required: false
+            collapsed: true
+            hint: >-
+              GEO = Generative Engine Optimization : ce qui aide aussi les
+              moteurs de réponse par IA (résumés, citations) à bien
+              comprendre et citer le site, en plus du SEO classique.
+            fields:
+              - label: "URL du site (production)"
+                name: "siteUrl"
+                widget: "string"
+                required: false
+                hint: >-
+                  Ex : https://mon-site.fr — nécessaire pour générer des URLs
+                  absolues (Open Graph, sitemap, données structurées).
+              - label: "Modèle de titre"
+                name: "titleTemplate"
+                widget: "string"
+                required: false
+                default: "%s · %s"
+                hint: >-
+                  %s sera remplacé par le titre de la page puis par le nom du
+                  site (ex : "Contact · Mon Site").
+              - label: "Langue / locale"
+                name: "locale"
+                widget: "string"
+                required: false
+                default: "fr_FR"
+                hint: "Ex : fr_FR — utilisé pour l'attribut lang et og:locale."
+              - label: "Autoriser l'indexation par les moteurs"
+                name: "robotsIndexing"
+                widget: "boolean"
+                default: true
+                required: false
+                hint: "Désactive globalement l'indexation (utile en pré-production)."
+              - label: "Compte X / Twitter (@identifiant)"
+                name: "twitterHandle"
+                widget: "string"
+                required: false
+              - label: "Type de carte X / Twitter"
+                name: "twitterCardType"
+                widget: "select"
+                options: ["summary", "summary_large_image"]
+                default: "summary_large_image"
+                required: false
+              - label: "Nom de l'organisation (données structurées)"
+                name: "organizationName"
+                widget: "string"
+                required: false
+                hint: "Utilisé pour le schema.org Organization/WebSite (aide le SEO/GEO)."
+              - label: "Logo de l'organisation (données structurées)"
+                name: "organizationLogo"
+                widget: "image"
+                required: false
+              - label: "Réseaux sociaux (schema.org sameAs)"
+                name: "sameAs"
+                widget: "list"
+                required: false
+                hint: "Une URL par ligne (LinkedIn, X, Instagram...)."
+              - label: "Code de vérification Google Search Console"
+                name: "googleSiteVerification"
+                widget: "string"
+                required: false

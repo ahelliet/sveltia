@@ -37,15 +37,29 @@ backend:
 
 ## Page builder (blocs de contenu)
 
-Tout le contenu d'un article passe par le champ `blocks` (`widget: list` avec `types`), qui permet d'empiler des blocs réordonnables dans l'admin : **Texte** (markdown libre, pour remplacer un simple paragraphe), **Image**, **Image + Texte**, **Citation**, **Galerie**. Il n'y a volontairement pas de champ "Contenu" séparé : ça évite d'avoir deux endroits différents où écrire du texte. Chaque type est défini dans `static/admin/config.yml`, et rendu côté site par `src/lib/components/Blocks.svelte` à partir des données typées dans `src/lib/posts.ts` (type `Block`).
+Tout le contenu d'un article passe par le champ `blocks` (`widget: list` avec `types`), qui permet d'empiler des blocs réordonnables dans l'admin : **Texte** (markdown libre, pour remplacer un simple paragraphe), **Image**, **Image + Texte**, **Citation**, **Galerie**. Il n'y a volontairement pas de champ "Contenu" séparé : ça évite d'avoir deux endroits différents où écrire du texte. Chaque type est défini dans `static/admin/config.yml`, et rendu côté site par `src/lib/components/Blocks.svelte` à partir des données typées dans `src/lib/blocks.ts` (type `Block`, `parseBlocks()` — partagé entre articles et pages, voir plus bas).
 
 Pour ajouter un nouveau type de bloc :
 
-1. Ajoute une entrée dans `types:` du champ `blocks` (`static/admin/config.yml`), avec un `name` unique et ses `fields`.
-2. Ajoute le type TypeScript correspondant et son cas dans `parseBlocks()` (`src/lib/posts.ts`).
+1. Ajoute une entrée dans `types: &blockTypes` du champ `blocks` de la collection "posts" (`static/admin/config.yml`), avec un `name` unique et ses `fields` — la collection "pages" réutilise cette même liste via l'ancre YAML `*blockTypes`, pas besoin de la dupliquer.
+2. Ajoute le type TypeScript correspondant et son cas dans `parseBlocks()` (`src/lib/blocks.ts`).
 3. Ajoute la branche `{:else if block.type === '...'}` dans `src/lib/components/Blocks.svelte`.
 
 L'article `content/posts/hello-world.md` contient un exemple de chaque type pour voir le rendu tout de suite (`pnpm dev` puis `/blog/hello-world`).
+
+## Pages (multipage)
+
+En plus des articles, la collection **Pages** (`content/pages/*.md`) permet de créer autant de pages libres que nécessaire (À propos, Contact, mentions légales...) — chacune obtient automatiquement sa propre URL (`/<slug>`), sans toucher au code. Comme demandé, ce n'est **pas un formulaire à champs prédéfinis** : une page, c'est juste un titre + le même page builder par blocs que les articles (voir ci-dessus), donc aussi flexible qu'un article pour la mise en page.
+
+- `static/admin/config.yml` : collection `pages`, champs `title` + `blocks` (types partagés avec "posts" via l'ancre YAML `&blockTypes`/`*blockTypes`) + `isHomePage` + `seo` (voir plus bas).
+- `src/lib/pages.ts` : lit `content/pages/*.md` (même principe que `src/lib/posts.ts`), expose `getAllPages()`, `getPageBySlug()`, `getHomePage()`.
+- `src/routes/[slug]/+page.svelte` (+ `+page.server.ts`) : route générique qui affiche n'importe quelle page par son slug, avec un `EntryGenerator` pour que `adapter-static` prérende chaque page créée dans le CMS.
+- `static/admin/preview.js` : `CMS.registerPreviewTemplate('pages', ...)` réutilise le même rendu de blocs et le même header/footer que l'aperçu des articles.
+- `content/pages/a-propos.md` : exemple de page pour voir le résultat tout de suite (`/a-propos`).
+
+**Slugs réservés** : `blog` et `admin` sont déjà pris par des routes existantes (`/blog`, et `/admin` qui est servi comme fichier statique). Une page qui utiliserait un de ces slugs est filtrée par `getAllPages()` (avec un avertissement dans la console au build) plutôt que de produire un conflit silencieux.
+
+**Page d'accueil éditable** : coche « Définir comme page d'accueil » (`isHomePage`) sur une page pour que son contenu (titre + blocs) remplace le texte d'accueil par défaut sur `/` — géré par `src/routes/+page.server.ts` (`getHomePage()`) et `src/routes/+page.svelte`. Sans page cochée, l'accueil garde son contenu actuel (texte de présentation + lien vers le blog). Une seule page doit avoir la case cochée à la fois (la première trouvée gagne si plusieurs le sont par erreur).
 
 ### Design system (Tailwind + shadcn-svelte)
 
@@ -69,12 +83,14 @@ Cette commande tourne automatiquement avant `pnpm dev` et avant `pnpm build` (ho
 
 Si tu ajoutes un nouveau type de bloc ou changes le style dans `Blocks.svelte`, répercute le changement dans `preview.js` (le rendu ne partage pas de code avec l'app SvelteKit) — la partie couleurs/thème, elle, se met à jour toute seule au prochain `pnpm dev`/`pnpm build` puisqu'elle vient directement de `src/app.css`.
 
+`src/app.css` importe aussi la police `@fontsource-variable/inter`, dont les fichiers `.woff2` sont référencés en chemin relatif (`url(./files/...)`). Ça fonctionne tout seul dans l'app SvelteKit (Vite réécrit ces chemins et copie les fichiers), mais pas dans `static/admin/` qui n'a pas de bundler — d'où un 404 sur `/admin/files/inter-*.woff2` si on se contente de compiler le CSS. `pnpm run build:admin-css` copie donc aussi ces fichiers de police dans `static/admin/files/` (`scripts/copy-admin-fonts.mjs`, appelé automatiquement après la compilation Tailwind) ; ce dossier est généré (`.gitignore`), pas commité.
+
 ## Navigation et paramètres globaux
 
 Deux entrées supplémentaires dans le menu de l'admin, pour le contenu qui n'est pas un article :
 
 - **Navigation** (`content/navigation.json`) — liens du menu, texte et liens du pied de page.
-- **Paramètres globaux** (`content/settings.json`) — nom/description du site, image de partage par défaut, email de contact.
+- **Paramètres globaux** (`content/settings.json`) — nom/description du site, image de partage par défaut, email de contact, et un bloc **Référencement (SEO & GEO)** (voir section dédiée plus bas).
 
 Ce sont des "file collections" Sveltia CMS (`files:` au lieu de `folder:`) : un seul document éditable par entrée, plutôt qu'une liste d'articles. Les champs actuels sont un point de départ volontairement minimal — à étoffer selon les besoins réels (ajoute simplement des `fields` dans `static/admin/config.yml`, comme pour n'importe quelle collection).
 
@@ -89,6 +105,15 @@ Les deux sont montés dans `src/routes/+layout.svelte`, donc présents sur toute
 **Aperçu de "Navigation"** : `preview.js` a aussi un `CMS.registerPreviewTemplate('navigation', ...)` qui affiche le même header/footer (mêmes classes Tailwind que `Navigation.svelte`/`Footer.svelte`) avec les liens/le texte en cours d'édition dans cette entrée, plus le vrai nom du site (récupéré via `getCollection('settings')`, comme pour l'aperçu des articles).
 
 **Pas d'aperçu pour "Paramètres globaux"** : `editor: { preview: false }` sur cette collection désactive le panneau d'aperçu — ce ne sont que des données informatives (nom du site, email...), sans rendu visuel propre à prévisualiser.
+
+## Référencement (SEO & GEO)
+
+Deux blocs de champs ajoutés côté CMS pour préparer le référencement — **ce ticket couvre uniquement les champs et leur saisie dans l'admin ; leur exploitation côté site (balises `<meta>`, Open Graph, JSON-LD, `sitemap.xml`, `robots.txt`) est prévue dans une prochaine étape.**
+
+- **Paramètres globaux → Référencement (SEO & GEO)** (`static/admin/config.yml`, objet `seo` dans la collection `settings`) : `siteUrl` (URL de prod, nécessaire pour des URLs absolues), `titleTemplate`, `locale`, `robotsIndexing` (interrupteur global d'indexation), `twitterHandle`/`twitterCardType`, `organizationName`/`organizationLogo` et `sameAs` (réseaux sociaux) pour les données structurées schema.org, `googleSiteVerification`.
+- **Chaque page** (collection `pages`, objet `seo`) et **chaque article** peuvent surcharger ces valeurs par défaut : `metaTitle`, `metaDescription`, `ogImage`, `noIndex`. Si un champ est vide, le site (une fois câblé) devra retomber sur la valeur des paramètres globaux.
+
+**SEO vs GEO** : le SEO classique (balises meta, Open Graph, sitemap...) cible les moteurs de recherche traditionnels. Le **GEO (Generative Engine Optimization)** est plus récent et cible les moteurs de réponse basés sur l'IA (résumés, citations dans une réponse générée) — il s'appuie surtout sur des données structurées claires (schema.org `Organization`/`WebSite`, d'où `organizationName`/`sameAs`) et un contenu bien balisé sémantiquement, ce que le page builder (titres, citations, texte en Markdown) fournit déjà côté contenu.
 
 ## Déploiement
 
@@ -108,7 +133,7 @@ Aucune variable d'environnement, aucune fonction serverless nécessaire.
 | --- | --- |
 | `pnpm dev` | Site en local (régénère `static/admin/preview.css` avant de démarrer) |
 | `pnpm build` | Build statique complet (`build/`), régénère `static/admin/preview.css` avant |
-| `pnpm build:admin-css` | Recompile juste `static/admin/preview.css` depuis `preview.tw.css` |
+| `pnpm build:admin-css` | Recompile `static/admin/preview.css` depuis `preview.tw.css` + copie les polices dans `static/admin/files/` |
 | `pnpm preview` | Aperçu du build |
 | `pnpm check` | Vérification TypeScript/Svelte |
 | `pnpm dlx shadcn-svelte@latest add <composant>` | Ajoute un nouveau composant shadcn-svelte dans `src/lib/components/ui/` |

@@ -10,13 +10,14 @@
 //
 // Every page on the real site is wrapped in the site header/footer
 // (src/routes/+layout.svelte -> Navigation.svelte/Footer.svelte), reading
-// content/navigation.json and content/settings.json. So the "posts"
-// preview fetches both via getCollection() and wraps the article the same
-// way — otherwise an editor previewing a post would see something the live
-// site never actually shows (an article with no chrome around it).
+// content/navigation.json and content/settings.json. So the "posts" and
+// "pages" previews fetch both via getCollection() and wrap their content
+// the same way — otherwise an editor previewing an entry would see
+// something the live site never actually shows (content with no chrome
+// around it).
 //
-// If you change Blocks.svelte, +page.svelte, Navigation.svelte or
-// Footer.svelte, mirror the change here too.
+// If you change Blocks.svelte, +page.svelte, [slug]/+page.svelte,
+// Navigation.svelte or Footer.svelte, mirror the change here too.
 
 (function () {
 	function toPlain(value) {
@@ -58,8 +59,8 @@
 
 	// Same header/footer markup + Tailwind classes as
 	// src/lib/components/Navigation.svelte and Footer.svelte, shared between
-	// the "posts" preview (wraps the whole page) and the "navigation" preview
-	// (previews the header/footer content itself).
+	// the "posts"/"pages" previews (wrap the whole page) and the
+	// "navigation" preview (previews the header/footer content itself).
 	// Same tag (<a>, with a real href), same classes, same wrapper structure
 	// as Navigation.svelte/Footer.svelte — not just visually similar markup,
 	// so there's no discrepancy left to spot between preview and live site.
@@ -156,6 +157,190 @@
 		});
 	}
 
+	// Renders the "blocks" page-builder array (same shape for the "posts"
+	// and "pages" collections — see the &blockTypes YAML anchor in
+	// config.yml) into the same markup/Tailwind classes as
+	// src/lib/components/Blocks.svelte. Shared by PostPreview and
+	// PagePreview so the two previews can't drift apart from each other.
+	function renderBlocks(blocks, getAsset) {
+		function resolveImage(path) {
+			if (!path) return null;
+			var asset = getAsset(path);
+			if (!asset) return path;
+			return typeof asset === 'string' ? asset : asset.toString();
+		}
+
+		return blocks
+			.map(function (block, i) {
+				if (!block || !block.type) return null;
+				var key = 'block-' + i;
+
+				if (block.type === 'text') {
+					return h('div', { key: key }, proseHtml(renderMarkdown(block.body)));
+				}
+
+				if (block.type === 'image') {
+					return h(
+						'figure',
+						{ key: key },
+						h(
+							'div',
+							{ className: 'aspect-video overflow-hidden rounded-2xl bg-muted' },
+							h('img', {
+								src: resolveImage(block.image),
+								alt: block.alt || '',
+								className: 'h-full w-full object-cover'
+							})
+						),
+						block.caption
+							? h(
+									'figcaption',
+									{ className: 'mt-2 text-center text-sm text-muted-foreground' },
+									block.caption
+								)
+							: null
+					);
+				}
+
+				if (block.type === 'image_text') {
+					return h(
+						'div',
+						{ key: key, className: 'grid items-center gap-6 md:grid-cols-2' },
+						h(
+							'div',
+							{
+								className:
+									'aspect-[4/3] overflow-hidden rounded-2xl bg-muted' +
+									(block.imageOnRight ? ' md:order-2' : '')
+							},
+							h('img', {
+								src: resolveImage(block.image),
+								alt: '',
+								className: 'h-full w-full object-cover'
+							})
+						),
+						proseHtml(renderMarkdown(block.body))
+					);
+				}
+
+				if (block.type === 'quote') {
+					return h(
+						'blockquote',
+						{ key: key, className: 'border-l-2 pl-6 italic' },
+						h('p', {}, block.quote),
+						block.author
+							? h(
+									'cite',
+									{ className: 'mt-2 block text-sm not-italic text-muted-foreground' },
+									'— ' + block.author
+								)
+							: null
+					);
+				}
+
+				if (block.type === 'gallery') {
+					var images = Array.isArray(block.images) ? block.images : [];
+					var carouselKey = 'gallery-' + i;
+					var buttonBase =
+						'absolute inset-y-0 my-auto flex size-8 items-center justify-center rounded-full border border-border bg-background text-sm font-medium hover:bg-muted disabled:pointer-events-none disabled:opacity-50';
+
+					return h(
+						'div',
+						{ key: key, className: 'relative' },
+						h(
+							'div',
+							{ className: 'overflow-hidden', 'data-embla-viewport': carouselKey },
+							h(
+								'div',
+								{ className: 'flex -ms-4', 'data-embla-container': carouselKey },
+								images.map(function (img, j) {
+									return h(
+										'div',
+										{ key: j, className: 'min-w-0 shrink-0 grow-0 basis-full ps-4' },
+										h(
+											'div',
+											{
+												className:
+													'overflow-hidden rounded-4xl bg-card shadow-md ring-1 ring-foreground/5'
+											},
+											h(
+												'div',
+												{ className: 'aspect-[4/3] overflow-hidden' },
+												h('img', {
+													src: resolveImage(img.image),
+													alt: img.alt || '',
+													className: 'h-full w-full object-cover'
+												})
+											)
+										)
+									);
+								})
+							)
+						),
+						h(
+							'button',
+							{
+								type: 'button',
+								className: buttonBase + ' -start-12',
+								'data-embla-prev': carouselKey
+							},
+							'‹'
+						),
+						h(
+							'button',
+							{
+								type: 'button',
+								className: buttonBase + ' -end-12',
+								'data-embla-next': carouselKey
+							},
+							'›'
+						)
+					);
+				}
+
+				return null;
+			})
+			.filter(Boolean);
+	}
+
+	// Real embla-carousel (the same library embla-carousel-svelte wraps for
+	// the shadcn-svelte Carousel component) instead of a static scroller, so
+	// any gallery block in a preview actually drags/snaps like on the live
+	// site. Shared by PostPreview and PagePreview.
+	function initCarousels(doc) {
+		if (typeof window.EmblaCarousel !== 'function') return [];
+		var apis = [];
+
+		doc.querySelectorAll('[data-embla-viewport]').forEach(function (viewport) {
+			var key = viewport.getAttribute('data-embla-viewport');
+			var api = window.EmblaCarousel(viewport, { loop: false });
+			var prevBtn = doc.querySelector('[data-embla-prev="' + key + '"]');
+			var nextBtn = doc.querySelector('[data-embla-next="' + key + '"]');
+
+			function updateButtons() {
+				if (prevBtn) prevBtn.disabled = !api.canScrollPrev();
+				if (nextBtn) nextBtn.disabled = !api.canScrollNext();
+			}
+
+			if (prevBtn) prevBtn.addEventListener('click', function () { api.scrollPrev(); });
+			if (nextBtn) nextBtn.addEventListener('click', function () { api.scrollNext(); });
+
+			api.on('select', updateButtons);
+			api.on('reInit', updateButtons);
+			updateButtons();
+
+			apis.push(api);
+		});
+
+		return apis;
+	}
+
+	function destroyCarousels(apis) {
+		(apis || []).forEach(function (api) {
+			api.destroy();
+		});
+	}
+
 	var PostPreview = createClass({
 		getInitialState: function () {
 			return { siteName: '', navLinks: [], footerText: '', footerLinks: [] };
@@ -168,55 +353,16 @@
 				self.setState(chrome);
 			});
 
-			// Real embla-carousel (the same library embla-carousel-svelte wraps
-			// for the shadcn-svelte Carousel component) instead of a static
-			// scroller, so the gallery in the preview actually drags/snaps like
-			// on the live site.
-			this._initCarousels();
+			this._emblaApis = initCarousels(this.props.document || document);
 		},
 
 		componentDidUpdate: function () {
-			this._destroyCarousels();
-			this._initCarousels();
+			destroyCarousels(this._emblaApis);
+			this._emblaApis = initCarousels(this.props.document || document);
 		},
 
 		componentWillUnmount: function () {
-			this._destroyCarousels();
-		},
-
-		_initCarousels: function () {
-			var doc = this.props.document || document;
-			if (typeof window.EmblaCarousel !== 'function') return;
-
-			this._emblaApis = [];
-
-			doc.querySelectorAll('[data-embla-viewport]').forEach(function (viewport) {
-				var key = viewport.getAttribute('data-embla-viewport');
-				var api = window.EmblaCarousel(viewport, { loop: false });
-				var prevBtn = doc.querySelector('[data-embla-prev="' + key + '"]');
-				var nextBtn = doc.querySelector('[data-embla-next="' + key + '"]');
-
-				function updateButtons() {
-					if (prevBtn) prevBtn.disabled = !api.canScrollPrev();
-					if (nextBtn) nextBtn.disabled = !api.canScrollNext();
-				}
-
-				if (prevBtn) prevBtn.addEventListener('click', function () { api.scrollPrev(); });
-				if (nextBtn) nextBtn.addEventListener('click', function () { api.scrollNext(); });
-
-				api.on('select', updateButtons);
-				api.on('reInit', updateButtons);
-				updateButtons();
-
-				this._emblaApis.push(api);
-			}, this);
-		},
-
-		_destroyCarousels: function () {
-			(this._emblaApis || []).forEach(function (api) {
-				api.destroy();
-			});
-			this._emblaApis = [];
+			destroyCarousels(this._emblaApis);
 		},
 
 		render: function () {
@@ -260,141 +406,65 @@
 				);
 			}
 
-			var blockEls = blocks
-				.map(function (block, i) {
-					if (!block || !block.type) return null;
-					var key = 'block-' + i;
-
-					if (block.type === 'text') {
-						return h('div', { key: key }, proseHtml(renderMarkdown(block.body)));
-					}
-
-					if (block.type === 'image') {
-						return h(
-							'figure',
-							{ key: key },
-							h(
-								'div',
-								{ className: 'aspect-video overflow-hidden rounded-2xl bg-muted' },
-								h('img', {
-									src: resolveImage(block.image),
-									alt: block.alt || '',
-									className: 'h-full w-full object-cover'
-								})
-							),
-							block.caption
-								? h(
-										'figcaption',
-										{ className: 'mt-2 text-center text-sm text-muted-foreground' },
-										block.caption
-									)
-								: null
-						);
-					}
-
-					if (block.type === 'image_text') {
-						return h(
-							'div',
-							{ key: key, className: 'grid items-center gap-6 md:grid-cols-2' },
-							h(
-								'div',
-								{
-									className:
-										'aspect-[4/3] overflow-hidden rounded-2xl bg-muted' +
-										(block.imageOnRight ? ' md:order-2' : '')
-								},
-								h('img', {
-									src: resolveImage(block.image),
-									alt: '',
-									className: 'h-full w-full object-cover'
-								})
-							),
-							proseHtml(renderMarkdown(block.body))
-						);
-					}
-
-					if (block.type === 'quote') {
-						return h(
-							'blockquote',
-							{ key: key, className: 'border-l-2 pl-6 italic' },
-							h('p', {}, block.quote),
-							block.author
-								? h(
-										'cite',
-										{ className: 'mt-2 block text-sm not-italic text-muted-foreground' },
-										'— ' + block.author
-									)
-								: null
-						);
-					}
-
-					if (block.type === 'gallery') {
-						var images = Array.isArray(block.images) ? block.images : [];
-						var carouselKey = 'gallery-' + i;
-						var buttonBase =
-							'absolute inset-y-0 my-auto flex size-8 items-center justify-center rounded-full border border-border bg-background text-sm font-medium hover:bg-muted disabled:pointer-events-none disabled:opacity-50';
-
-						return h(
-							'div',
-							{ key: key, className: 'relative' },
-							h(
-								'div',
-								{ className: 'overflow-hidden', 'data-embla-viewport': carouselKey },
-								h(
-									'div',
-									{ className: 'flex -ms-4', 'data-embla-container': carouselKey },
-									images.map(function (img, j) {
-										return h(
-											'div',
-											{ key: j, className: 'min-w-0 shrink-0 grow-0 basis-full ps-4' },
-											h(
-												'div',
-												{
-													className:
-														'overflow-hidden rounded-4xl bg-card shadow-md ring-1 ring-foreground/5'
-												},
-												h(
-													'div',
-													{ className: 'aspect-[4/3] overflow-hidden' },
-													h('img', {
-														src: resolveImage(img.image),
-														alt: img.alt || '',
-														className: 'h-full w-full object-cover'
-													})
-												)
-											)
-										);
-									})
-								)
-							),
-							h(
-								'button',
-								{
-									type: 'button',
-									className: buttonBase + ' -start-12',
-									'data-embla-prev': carouselKey
-								},
-								'‹'
-							),
-							h(
-								'button',
-								{
-									type: 'button',
-									className: buttonBase + ' -end-12',
-									'data-embla-next': carouselKey
-								},
-								'›'
-							)
-						);
-					}
-
-					return null;
-				})
-				.filter(Boolean);
-
 			children.push(
-				h('div', { key: 'blocks', className: 'mt-8 flex flex-col gap-10' }, blockEls)
+				h(
+					'div',
+					{ key: 'blocks', className: 'mt-8 flex flex-col gap-10' },
+					renderBlocks(blocks, getAsset)
+				)
 			);
+
+			return h(
+				'div',
+				{},
+				renderSiteHeader(this.state.siteName, this.state.navLinks),
+				h('article', { className: 'mx-auto max-w-3xl px-4 py-12' }, children),
+				renderSiteFooter(this.state.footerText, this.state.footerLinks, this.state.siteName)
+			);
+		}
+	});
+
+	// Preview for the "pages" collection (the multipage page builder — same
+	// blocks as "posts", just without date/heroImage). Wrapped in the real
+	// site header/footer exactly like PostPreview, for the same reason.
+	var PagePreview = createClass({
+		getInitialState: function () {
+			return { siteName: '', navLinks: [], footerText: '', footerLinks: [] };
+		},
+
+		componentDidMount: function () {
+			var self = this;
+
+			fetchSiteChrome(this.props.getCollection).then(function (chrome) {
+				self.setState(chrome);
+			});
+
+			this._emblaApis = initCarousels(this.props.document || document);
+		},
+
+		componentDidUpdate: function () {
+			destroyCarousels(this._emblaApis);
+			this._emblaApis = initCarousels(this.props.document || document);
+		},
+
+		componentWillUnmount: function () {
+			destroyCarousels(this._emblaApis);
+		},
+
+		render: function () {
+			var entry = this.props.entry;
+			var getAsset = this.props.getAsset;
+			var data = toPlain(entry.get('data')) || {};
+			var blocks = Array.isArray(data.blocks) ? data.blocks : [];
+
+			var children = [
+				h('h1', { key: 'title', className: 'text-3xl font-bold tracking-tight' }, data.title || ''),
+				h(
+					'div',
+					{ key: 'blocks', className: 'mt-8 flex flex-col gap-10' },
+					renderBlocks(blocks, getAsset)
+				)
+			];
 
 			return h(
 				'div',
@@ -444,7 +514,7 @@
 				h(
 					'div',
 					{ className: 'flex-1 px-4 py-10 text-center text-sm text-muted-foreground' },
-					'← le contenu des articles s\'affiche ici'
+					'← le contenu des articles/pages s\'affiche ici'
 				),
 				renderSiteFooter(data.footerText, footerLinks, siteName)
 			);
@@ -453,5 +523,6 @@
 
 	CMS.registerPreviewStyle('preview.css');
 	CMS.registerPreviewTemplate('posts', PostPreview);
+	CMS.registerPreviewTemplate('pages', PagePreview);
 	CMS.registerPreviewTemplate('navigation', NavigationPreview);
 })();
