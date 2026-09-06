@@ -76,7 +76,15 @@ Deux entrées supplémentaires dans le menu de l'admin, pour le contenu qui n'es
 - **Navigation** (`content/navigation.json`) — liens du menu, texte et liens du pied de page.
 - **Paramètres globaux** (`content/settings.json`) — nom/description du site, image de partage par défaut, email de contact.
 
-Ce sont des "file collections" Sveltia CMS (`files:` au lieu de `folder:`) : un seul document éditable par entrée, plutôt qu'une liste d'articles. Les champs actuels sont un point de départ volontairement minimal — à étoffer selon les besoins réels (ajoute simplement des `fields` dans `static/admin/config.yml`, comme pour n'importe quelle collection). Pour l'instant ces fichiers ne sont pas encore lus par le site (pas de composant Navigation/Footer côté SvelteKit) : c'est la prochaine étape logique, sur le même principe que `src/lib/posts.ts` (un petit loader qui lit `content/navigation.json`/`content/settings.json`).
+Ce sont des "file collections" Sveltia CMS (`files:` au lieu de `folder:`) : un seul document éditable par entrée, plutôt qu'une liste d'articles. Les champs actuels sont un point de départ volontairement minimal — à étoffer selon les besoins réels (ajoute simplement des `fields` dans `static/admin/config.yml`, comme pour n'importe quelle collection).
+
+Ces fichiers sont lus par `src/lib/site.ts` (même principe que `src/lib/posts.ts`, mais avec un simple `import` de fichier `.json` — Vite le résout directement en objet, pas besoin de parsing) et utilisés par :
+
+- `src/lib/components/Navigation.svelte` — barre du haut, sticky, avec le nom du site (lien vers l'accueil) et les liens de `navLinks`.
+- `src/lib/components/Footer.svelte` — pied de page avec `footerText` et `footerLinks`.
+- `src/routes/+page.svelte` — utilise `siteName`/`siteDescription` pour l'accueil et le `<title>`.
+
+Les deux sont montés dans `src/routes/+layout.svelte`, donc présents sur toutes les pages. Si tu ajoutes des champs dans `config.yml`, pense à les répercuter dans `src/lib/site.ts` (les types `Navigation`/`Settings`) et dans le composant qui doit les afficher.
 
 ## Déploiement
 
