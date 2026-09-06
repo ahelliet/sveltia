@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+	import SeoHead from '$lib/components/SeoHead.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 </script>
 
-<svelte:head>
-	<title>Articles</title>
-</svelte:head>
+<SeoHead title="Articles" />
 
 <div class="mx-auto max-w-3xl px-4 py-12">
 	<h1 class="text-3xl font-bold tracking-tight">Articles</h1>

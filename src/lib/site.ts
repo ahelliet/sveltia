@@ -162,3 +162,33 @@ export function resolveLinkHref(link: NavLink): string {
 	if (link.type === 'dropdown') return '#';
 	return link.url || '#';
 }
+
+// Composes a page-specific title with settings.seo.titleTemplate (default
+// "%s · %s": page title, then site name — see the hint in config.yml).
+// Replaces the two "%s" placeholders in order rather than assuming exactly
+// two, so a template with a different number of them (or none) degrades
+// gracefully instead of throwing. Used by SeoHead.svelte for every page
+// except the homepage, which has no "page title" of its own to prefix (see
+// src/routes/+page.svelte).
+export function buildPageTitle(pageTitle: string): string {
+	let first = true;
+	return settings.seo.titleTemplate.replace(/%s/g, () => {
+		const value = first ? pageTitle : settings.siteName;
+		first = false;
+		return value;
+	});
+}
+
+// Turns a possibly-relative path/URL (a CMS image field, or the current
+// page's pathname) into an absolute one against settings.seo.siteUrl — Open
+// Graph/Twitter Card images and <link rel="canonical"> must be absolute
+// per spec, and JSON-LD image/logo fields should be too. Same fallback
+// philosophy as sitemap.xml/+server.ts: if siteUrl isn't set yet, returns
+// the path as-is (relative) rather than throwing, with the same
+// "set this before deploying" burden already documented there.
+export function absoluteUrl(path: string): string {
+	if (!path) return '';
+	if (/^https?:\/\//.test(path)) return path;
+	if (!settings.seo.siteUrl) return path;
+	return `${settings.seo.siteUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+}
