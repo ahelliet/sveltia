@@ -35,12 +35,17 @@
 		});
 	}
 
-	// Reads one field out of whatever getCollection(name) resolves to. Not
-	// documented precisely, so this handles the shapes it could plausibly be:
-	// a single Immutable entry Map, an Immutable List of entries, or a plain
-	// array — file/singleton collections aren't explicitly covered by
-	// Sveltia's docs, so better to be defensive than to assume one shape and
-	// silently show nothing if it's another.
+	// Reads one field out of whatever getCollection(...) resolves to.
+	// getCollection(name) only looks up entries under `collections:` in
+	// config.yml — a singleton (`settings`, `navigation`, `home`, defined
+	// under `singletons:`) isn't a collection by that name and always
+	// rejects, hence the reserved pseudo-collection name '_singletons'
+	// used everywhere below: getCollection('_singletons', name) looks the
+	// singleton up by its own `name` and resolves a single Immutable entry
+	// Map directly (not a list) — confirmed by reading Sveltia CMS's own
+	// bundle source, since none of this is covered by its public docs.
+	// firstEntry() is still kept defensive (handles a List/array too) in
+	// case a future Sveltia version changes this shape again.
 	function firstEntry(result) {
 		if (!result) return null;
 		if (typeof result.getIn === 'function') return result;
@@ -222,10 +227,10 @@
 		}
 
 		return Promise.all([
-			getCollection('settings').catch(function () {
+			getCollection('_singletons', 'settings').catch(function () {
 				return null;
 			}),
-			getCollection('navigation').catch(function () {
+			getCollection('_singletons', 'navigation').catch(function () {
 				return null;
 			})
 		]).then(function (results) {
@@ -672,7 +677,7 @@
 			if (typeof this.props.getCollection !== 'function') return;
 
 			this.props
-				.getCollection('settings')
+				.getCollection('_singletons', 'settings')
 				.then(function (result) {
 					var siteName = entryData(firstEntry(result)).siteName;
 					if (siteName) self.setState({ siteName: siteName });
