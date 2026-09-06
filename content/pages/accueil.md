@@ -1,6 +1,6 @@
 ---
 title: accueil
-isHomePage: false
+isHomePage: true
 blocks: []
 seo: null
 ---
