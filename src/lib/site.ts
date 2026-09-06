@@ -15,6 +15,7 @@ type RawNavLink = {
 	post?: string;
 	anchor?: string;
 	url?: string;
+	links?: RawNavLink[];
 };
 
 type RawNavigation = {
@@ -48,21 +49,28 @@ type RawSettings = {
 const navigationData = navigationDataRaw as RawNavigation;
 const settingsData = settingsDataRaw as RawSettings;
 
-// A nav/footer link points at one of four things depending on `type` (the
-// list-with-types widget's discriminator field — see the &navLinkTypes
-// anchor in config.yml, same idea as the &blockTypes page builder): a CMS
-// "Pages" entry, a blog article, an anchor on the current page, or a
-// free-typed URL. `page`/`post` store just the slug (Sveltia's relation
-// widget with `value_field: "{{slug}}"`). `anchor` is optional on
-// page/post links (jumps to a section of that page) and required on
-// "anchor" links (jumps to a section of the current page).
+// A nav/footer link points at one of five things depending on `type` (the
+// list-with-types widget's discriminator field — see the individually
+// anchored &navLinkTypePage/Post/Anchor/Url in config.yml, same idea as the
+// &blockTypes page builder): a CMS "Pages" entry, a blog article, an anchor
+// on the current page, a free-typed URL, or (nav menu only, not the
+// footer) a "dropdown" holding its own nested `links`. `page`/`post` store
+// just the slug (Sveltia's relation widget with `value_field:
+// "{{slug}}"`). `anchor` is optional on page/post links (jumps to a
+// section of that page) and required on "anchor" links (jumps to a
+// section of the current page). A dropdown's `links` only ever contains
+// the four simple types — config.yml doesn't offer "dropdown" as one of
+// its own sub-link types, so this doesn't nest further in practice, but
+// the type stays recursive (`NavLink[]`) rather than a separate narrower
+// type to keep resolveLinkHref/consumers simple.
 export type NavLink = {
-	type?: 'page' | 'post' | 'anchor' | 'url';
+	type?: 'page' | 'post' | 'anchor' | 'url' | 'dropdown';
 	label: string;
 	page?: string;
 	post?: string;
 	anchor?: string;
 	url?: string;
+	links?: NavLink[];
 };
 
 export type Navigation = {
@@ -97,10 +105,25 @@ export type Settings = {
 // the CMS's "Navigation" and "Paramètres globaux" singletons
 // (content/navigation.json, content/settings.json), and Vite bundles a
 // plain `import` of a .json file as a parsed object with no extra work.
+// Normalizes a raw nav/footer link recursively — a "dropdown" link's own
+// `links` go through the same parsing (defaulting to [] when absent), so
+// nothing downstream needs to special-case a dropdown with no sub-links.
+function parseNavLink(raw: RawNavLink): NavLink {
+	return {
+		type: raw.type as NavLink['type'],
+		label: raw.label ?? '',
+		page: raw.page,
+		post: raw.post,
+		anchor: raw.anchor,
+		url: raw.url,
+		links: raw.links?.map(parseNavLink) ?? []
+	};
+}
+
 export const navigation: Navigation = {
-	navLinks: navigationData.navLinks ?? [],
+	navLinks: (navigationData.navLinks ?? []).map(parseNavLink),
 	footerText: navigationData.footerText,
-	footerLinks: navigationData.footerLinks ?? []
+	footerLinks: (navigationData.footerLinks ?? []).map(parseNavLink)
 };
 
 export const settings: Settings = {
@@ -123,15 +146,19 @@ export const settings: Settings = {
 	}
 };
 
-// Turns a nav/footer link into an actual href. Mirrored in
-// static/admin/preview.js (resolveLinkHref) so the "Navigation" preview
-// stays consistent with the real header/footer — if you change this,
-// change that too.
+// Turns a nav/footer link into an actual href. Not meaningful for a
+// "dropdown" link itself (it has no destination of its own — only its
+// nested `links` do); callers render a dropdown as a trigger + submenu
+// instead of a plain <a>, so this just falls through to '#' for one.
+// Mirrored in static/admin/preview.js (resolveLinkHref) so the
+// "Navigation" preview stays consistent with the real header/footer — if
+// you change this, change that too.
 export function resolveLinkHref(link: NavLink): string {
 	const anchor = link.anchor ? `#${link.anchor}` : '';
 
 	if (link.type === 'page' && link.page) return `/${link.page}${anchor}`;
 	if (link.type === 'post' && link.post) return `/blog/${link.post}${anchor}`;
 	if (link.type === 'anchor' && link.anchor) return `#${link.anchor}`;
+	if (link.type === 'dropdown') return '#';
 	return link.url || '#';
 }

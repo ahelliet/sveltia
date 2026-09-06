@@ -59,18 +59,90 @@
 
 	// Same link resolution as resolveLinkHref() in src/lib/site.ts: a nav
 	// link points at a CMS page, a blog article, an anchor on the current
-	// page, or a free-typed URL depending on `type` (the list-with-types
-	// discriminator, see &navLinkTypes in config.yml) — mirrored here (plain
-	// JS, no shared import possible since this file has no bundler) so the
-	// preview never shows a different link than the real site would produce
-	// for the same data.
+	// page, a free-typed URL, or (nav menu only) is a "dropdown" with no
+	// href of its own — depending on `type` (the list-with-types
+	// discriminator, see &navLinkTypePage/Post/Anchor/Url in config.yml) —
+	// mirrored here (plain JS, no shared import possible since this file
+	// has no bundler) so the preview never shows a different link than the
+	// real site would produce for the same data.
 	function resolveLinkHref(link) {
 		var anchor = link.anchor ? '#' + link.anchor : '';
 
 		if (link.type === 'page' && link.page) return '/' + link.page + anchor;
 		if (link.type === 'post' && link.post) return '/blog/' + link.post + anchor;
 		if (link.type === 'anchor' && link.anchor) return '#' + link.anchor;
+		if (link.type === 'dropdown') return '#';
 		return link.url || '#';
+	}
+
+	// Renders one navLinks entry: a plain <a> for the simple types, or (for
+	// a "dropdown" entry) a native <details>/<summary> disclosure listing
+	// its nested `links` — no bits-ui/Svelte runtime is available in this
+	// plain-JS preview iframe, so <details> stands in for the real site's
+	// interactive popover (click-to-toggle, no extra JS state to manage).
+	// Same idea as Navigation.svelte's DropdownMenu, approximated rather
+	// than pixel-identical (see the "not a 1:1 mirror" note at the top of
+	// this file).
+	function renderNavLink(link, key) {
+		if (link.type === 'dropdown') {
+			var sublinks = link.links || [];
+			return h(
+				'details',
+				{ key: key, className: 'group relative' },
+				h(
+					'summary',
+					{
+						className:
+							'flex cursor-pointer list-none items-center gap-1 text-muted-foreground transition-colors hover:text-foreground marker:content-none [&::-webkit-details-marker]:hidden'
+					},
+					link.label || '',
+					h(
+						'svg',
+						{
+							viewBox: '0 0 24 24',
+							width: 14,
+							height: 14,
+							fill: 'none',
+							stroke: 'currentColor',
+							strokeWidth: 2,
+							strokeLinecap: 'round',
+							strokeLinejoin: 'round',
+							className: 'mt-px'
+						},
+						h('path', { d: 'm6 9 6 6 6-6' })
+					)
+				),
+				h(
+					'div',
+					{
+						className:
+							'absolute left-0 top-full z-50 mt-2 min-w-40 rounded-lg border border-border bg-popover p-1 text-sm text-popover-foreground shadow-md'
+					},
+					sublinks.map(function (sublink, i) {
+						return h(
+							'a',
+							{
+								key: i,
+								href: resolveLinkHref(sublink),
+								className:
+									'flex items-center rounded-md px-2.5 py-1.5 hover:bg-accent hover:text-accent-foreground'
+							},
+							sublink.label || ''
+						);
+					})
+				)
+			);
+		}
+
+		return h(
+			'a',
+			{
+				key: key,
+				href: resolveLinkHref(link),
+				className: 'text-muted-foreground transition-colors hover:text-foreground'
+			},
+			link.label || ''
+		);
 	}
 
 	// Same header/footer markup + Tailwind classes as
@@ -100,15 +172,7 @@
 							'nav',
 							{ className: 'flex flex-wrap items-center gap-6 text-sm' },
 							navLinks.map(function (link, i) {
-								return h(
-									'a',
-									{
-										key: i,
-										href: resolveLinkHref(link),
-										className: 'text-muted-foreground transition-colors hover:text-foreground'
-									},
-									link.label || ''
-								);
+								return renderNavLink(link, i);
 							})
 						)
 					: null

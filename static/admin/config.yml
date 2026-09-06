@@ -230,14 +230,18 @@ singletons:
       - label: "Liens du menu"
         name: "navLinks"
         widget: "list"
-        # &navLinkTypes : chaque lien choisit UN type ci-dessous (Page /
-        # Article / Ancre / URL) et n'affiche que les champs utiles à ce
-        # type-là — plus clair qu'un champ "type de lien" suivi de 3 champs
-        # optionnels tous visibles en même temps, quel que soit le type
-        # choisi. Réutilisé tel quel par "Liens du pied de page" ci-dessous
-        # (ancre YAML).
-        types: &navLinkTypes
-          - label: "Page du site"
+        # Chaque lien du menu choisit UN type ci-dessous et n'affiche que
+        # les champs utiles à ce type-là — plus clair qu'un champ "type de
+        # lien" suivi de plusieurs champs optionnels tous visibles en même
+        # temps, quel que soit le type choisi. Les 4 types "simples" (Page /
+        # Article / Ancre / URL) sont ancrés individuellement (au lieu d'une
+        # seule liste &navLinkTypes) car une liste YAML ne peut pas
+        # s'auto-référencer : le type "dropdown" ci-dessous a besoin de les
+        # référencer pour son propre sous-menu, tout comme "Liens du pied de
+        # page" plus bas.
+        types:
+          - &navLinkTypePage
+            label: "Page du site"
             name: "page"
             widget: "object"
             summary: "{{fields.label}} → page : {{fields.page}}"
@@ -263,7 +267,8 @@ singletons:
                 hint: >-
                   Fait défiler jusqu'à l'élément portant cet identifiant sur
                   la page, sans le # (ex : contact).
-          - label: "Article de blog"
+          - &navLinkTypePost
+            label: "Article de blog"
             name: "post"
             widget: "object"
             summary: "{{fields.label}} → article : {{fields.post}}"
@@ -283,7 +288,8 @@ singletons:
                 widget: "string"
                 required: false
                 hint: "Sans le # (ex : commentaires)."
-          - label: "Ancre sur cette page"
+          - &navLinkTypeAnchor
+            label: "Ancre sur cette page"
             name: "anchor"
             widget: "object"
             summary: "{{fields.label}} → #{{fields.anchor}}"
@@ -297,7 +303,8 @@ singletons:
                   (ex : contact). Le lien reste sur la page en cours —
                   pratique pour un menu qui pointe vers une section plus bas
                   sur la même page.
-          - label: "URL personnalisée"
+          - &navLinkTypeUrl
+            label: "URL personnalisée"
             name: "url"
             widget: "object"
             summary: "{{fields.label}} → {{fields.url}}"
@@ -307,6 +314,23 @@ singletons:
                 name: "url"
                 widget: "string"
                 hint: "Ex : https://..., /mentions-legales, #ancre..."
+          - label: "Sous-menu (dropdown)"
+            name: "dropdown"
+            widget: "object"
+            summary: "{{fields.label}} → sous-menu"
+            fields:
+              - { label: "Libellé", name: "label", widget: "string" }
+              - label: "Liens du sous-menu"
+                name: "links"
+                widget: "list"
+                # Un sous-menu ne peut pas contenir un autre sous-menu :
+                # seuls les 4 types "simples" sont proposés ici, pas
+                # "dropdown" lui-même.
+                types:
+                  - *navLinkTypePage
+                  - *navLinkTypePost
+                  - *navLinkTypeAnchor
+                  - *navLinkTypeUrl
       - label: "Texte du pied de page"
         name: "footerText"
         widget: "string"
@@ -315,7 +339,13 @@ singletons:
         name: "footerLinks"
         widget: "list"
         required: false
-        types: *navLinkTypes
+        # Pas de type "dropdown" en pied de page : reste une liste de liens
+        # simples (pas de sous-menu déroulant dans le footer).
+        types:
+          - *navLinkTypePage
+          - *navLinkTypePost
+          - *navLinkTypeAnchor
+          - *navLinkTypeUrl
 
   - name: "settings"
     label: "Paramètres globaux"
